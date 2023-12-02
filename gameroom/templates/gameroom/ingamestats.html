@@ -1,0 +1,15 @@
+<div id="ingame_stats">
+    {% if players %}
+        <div class="space-y-2">
+            {% for player in players %}
+                <p class="text-gray-700">
+                    <span class="font-semibold">{{ player.name }}</span>: 
+                    successful sneaks = <span class="font-semibold">{{ player.succesful_sneaks }}</span>, 
+                    failed sneaks = <span class="font-semibold">{{ player.failed_sneaks }}</span>
+                </p>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-gray-500">There are no stats</p>
+    {% endif %}
+</div>

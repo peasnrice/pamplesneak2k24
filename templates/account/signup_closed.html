@@ -1,0 +1,29 @@
+{% extends "account/base.html" %}
+
+{% load url from future %}
+{% load i18n %}
+
+{% block head_title %}{% trans "Sign Up Closed" %}{% endblock %}
+
+{% block jumbotron %}
+<div class="row">
+	<div class="col-md-12">
+		<div class="well well-sm">
+		  <h1>Sorry, Sign Up Closed</h1>
+		  <p>We appologise, next time we will try to let you in</p>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="col-md-12">
+		<h1>{% trans "Sign Up Closed" %}</h1>
+
+		<p>{% trans "We are sorry, but the sign up is currently closed." %}</p>
+	</div>
+</div>
+{% endblock %}
+
+
