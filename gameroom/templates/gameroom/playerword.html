@@ -1,0 +1,37 @@
+<script>
+    $(document).ready(function() {
+      $('.game_word').hide();
+    });
+    
+    function toggle_reveal(){
+      $('.game_word').toggle();
+    }
+</script>
+    
+<div id="player_word" class="text-center">
+    {% if player_word %}
+        <h1 class="text-xl font-bold">YOUR WORD IS</h1>
+        <button id="reveal_button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded" onclick="toggle_reveal();">Show/Hide Word</button>
+        <div class="game_word mt-4">
+            <h2 class="text-2xl font-bold">{{ player_word }}</h2>
+        </div>
+        <p class="mt-2">sent by
+            {% if sender %}
+            <i>{{ sender }}</i>
+            {% else %}
+            <i>anonymous</i>
+            {% endif %}
+        </p>
+        <p>I said my word and <button id="succeeded_button" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-2 rounded text-xs" onclick="word_succeed();">
+            Succeeded
+        </button> <b>/</b>
+            <button id="failed_button" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-2 rounded text-xs" onclick="word_fail();">
+            Failed
+        </button>
+        </p>
+        {% else %}
+        <h1 class="text-xl font-bold">WAITING FOR WORD</h1>
+        <h2 class="text-lg">Go get friends</h2>
+    {% endif %}
+</div>
+    

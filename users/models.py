@@ -8,9 +8,38 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
-class PamplesneakInfo(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="gameroom_info")
-    # Add rest of fields...
+class UserProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="user_profile")
+    current_game = models.ForeignKey(
+        'gameroom.Game',  
+        related_name="player_current_game", 
+        on_delete=models.SET_NULL,  # Update the on_delete action
+        blank=True, 
+        null=True
+    )
+    previous_games = models.ManyToManyField(
+        'gameroom.Game',
+        related_name="player_previous_games",
+        blank=True
+    )
+
+    current_player = models.ForeignKey(
+        'gameroom.Player',  
+        related_name="current_player", 
+        on_delete=models.SET_NULL,  # Update the on_delete action
+        blank=True, 
+        null=True
+    )
+    previous_players = models.ManyToManyField(
+        'gameroom.Player',
+        related_name="previous_players",
+        blank=True
+    )
+
+    games_played = models.IntegerField(default=0)
+    wins = models.IntegerField(default=0)
+    loses = models.IntegerField(default=0)
 
     def __str__(self):
         return self.user.username
+    
