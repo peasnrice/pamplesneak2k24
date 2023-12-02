@@ -35,7 +35,7 @@ $(document).ready(function() {
 <div class="p-4 bg-gray-200 text-center">
   <h1 class="text-3xl font-bold">Welcome to the Pamplesneak game</h1>
   <h2 class="text-2xl">{{ game.game_name }}!</h2>
-  <a class="text-white bg-yellow-400 hover:bg-yellow-500 font-bold py-2 px-4 rounded" href="" role="button">Back to Lobby</a>
+  <a class="text-white bg-yellow-400 hover:bg-yellow-500 font-bold py-2 px-4 rounded" href="{% url 'gameroom:pampleplay' %}" role="button">Back to Lobby</a>
 </div>
 {% endblock %}
 

@@ -41,6 +41,8 @@ class Word(models.Model):
     created_by = models.ForeignKey('Player', on_delete=models.SET_NULL, related_name='player_created_by', null=True, blank=True)
     send_to = models.ForeignKey('Player', on_delete=models.SET_NULL, related_name='player_sent_to', null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
+    completed = models.BooleanField(default=False)
+    successful = models.BooleanField(null=True)
 
     def __str__(self):
         return self.word

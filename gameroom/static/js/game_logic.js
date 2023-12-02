@@ -5,18 +5,17 @@ $(document).ready(function () {
         $('.game_word').toggle();
     });
 
-    // Attach event handlers for succeeded and failed buttons
-    $('#succeeded_button').click(function () {
-        const wordId = $('#succeeded_button').data('word-id');
-        const gameId = $('#succeeded_button').data('game-id');
-        const playerId = $('#succeeded_button').data('player-id');
+    $('#player_word').on('click', '#succeeded_button', function () {
+        const wordId = $(this).data('word-id');
+        const gameId = $(this).data('game-id');
+        const playerId = $(this).data('player-id');
         word_success(wordId, gameId, playerId);
     });
 
-    $('#failed_button').click(function () {
-        const wordId = $('#failed_button').data('word-id');
-        const gameId = $('#succeeded_button').data('game-id');
-        const playerId = $('#succeeded_button').data('player-id');
+    $('#player_word').on('click', '#failed_button', function () {
+        const wordId = $(this).data('word-id');
+        const gameId = $(this).data('game-id');
+        const playerId = $(this).data('player-id');
         word_fail(wordId, gameId, playerId);
     });
 
@@ -39,23 +38,20 @@ function getCookie(name) {
 
 async function word_success(wordId, gameId, playerId) {
     try {
-        // Perform an AJAX request to a Django view
         const response = await fetch(`/gameroom/ajax/word_success/${wordId}/${gameId}/${playerId}/`, {
-            method: 'POST', // or 'GET', depending on your server setup
+            method: 'POST',
             headers: {
-                'X-CSRFToken': getCookie('csrftoken'), // CSRF token, required for POST requests
+                'X-CSRFToken': getCookie('csrftoken'),
                 'Content-Type': 'application/json'
             },
-            // Additional data can be sent in the body, if necessary
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('player_word').innerHTML = data.html;
+        } else {
+            console.error(`HTTP error! status: ${response.status}`);
         }
-
-        const data = await response.json();
-
-        document.getElementById('player_word').innerHTML = data["response"];
 
     } catch (error) {
         console.error('Error in word_success:', error);
@@ -65,23 +61,21 @@ async function word_success(wordId, gameId, playerId) {
 async function word_fail(wordId, gameId, playerId) {
     try {
         const response = await fetch(`/gameroom/ajax/word_fail/${wordId}/${gameId}/${playerId}/`, {
-            method: 'POST', // or 'GET'
+            method: 'POST',
             headers: {
-                'X-CSRFToken': getCookie('csrftoken'), // CSRF token
+                'X-CSRFToken': getCookie('csrftoken'),
                 'Content-Type': 'application/json'
             },
-            // Additional data can be sent in the body, if necessary
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('player_word').innerHTML = data.html;
+        } else {
+            console.error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-
-        document.getElementById('player_word').innerHTML = data["response"];
-
     } catch (error) {
-        console.error('Error in word_fail:', error);
+        console.error('Error in word_success:', error);
     }
 }

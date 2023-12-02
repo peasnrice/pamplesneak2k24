@@ -83,7 +83,7 @@ def joingame(request, game_id, slug):
     players_dict = {p.id: p.name for p in players_query}
     form = MessageSender(players_dict)
 
-    game_words = Word.objects.filter(game=game_id).filter(send_to=player).order_by('created')
+    game_words = Word.objects.filter(game=game_id).filter(send_to=player).filter(completed=False).order_by('created')
     if not game_words:
         player_word = None
     else:
@@ -148,36 +148,45 @@ def refresh_word(request, game_id, player_id):
     player_word = game_words[0].word if game_words else ""
     sender = game_words[0].created_by.name if game_words and game_words[0].created_by else "anonymous"
 
-    html = render_to_string('gameroom/playerword.html', {'player_word': player_word, 'sender': sender})
+    context = {
+        'player_word': player_word,
+        'game_id': game_id,
+        'player_id': player_id,
+    }
+
+    html = render_to_string('gameroom/playerword.html', context, request=request)
     return JsonResponse({'html': html})
 
 def word_success(request, word_id, game_id, player_id):
     game_word = Word.objects.get(id=word_id)
     # Perform the success logic here
-    game_word.player = None
+    game_word.completed = True
+    game_word.successful = True
     game_word.save()
 
     player = game_word.send_to
     player.succesful_sneaks += 1
     player.save()
 
-    game_words = (
-        Word.objects.filter(game=game_id)
-        .filter(player=player_id)
-        .order_by("created")
-    )
-    sender = ""
+    game = get_object_or_404(Game, pk=game_id)
+
+    game_words = Word.objects.filter(game=game_id).filter(send_to=player).filter(completed=False).order_by('created')
     if not game_words:
-        player_word = ""
+        player_word = None
     else:
-        player_word = game_words[0].word
-        if game_words[0].created_by:
-            sender = game_words[0].created_by
+        player_word = game_words[0]
+
+    context = {
+        'player_word': player_word,
+        'game': game,
+        'player': player,
+    }
 
     # You can now directly use game_word for the context
     render = render_to_string(
         "gameroom/playerword.html", 
-        {"player_word": game_word.word, "sender": game_word.created_by or "anonymous"}
+        context,
+        request=request
     )
 
     return JsonResponse({'html': render})
@@ -185,15 +194,32 @@ def word_success(request, word_id, game_id, player_id):
 def word_fail(request, word_id, game_id, player_id):
     game_word = Word.objects.get(id=word_id)
     # Perform the success logic here
-    game_word.player = None
+    game_word.completed = True
+    game_word.successful = False
     game_word.save()
 
     player = game_word.send_to
     player.failed_sneaks += 1
     player.save()
 
+    game = get_object_or_404(Game, pk=game_id)
+
+    game_words = Word.objects.filter(game=game_id).filter(send_to=player).filter(completed=False).order_by('created')
+    if not game_words:
+        player_word = None
+    else:
+        player_word = game_words[0]
+
+    context = {
+        'player_word': player_word,
+        'game': game,
+        'player': player,
+    }
+
+    # You can now directly use game_word for the context
     render = render_to_string(
         "gameroom/playerword.html", 
-        {"player_word": game_word.word, "sender": game_word.created_by or "anonymous"}
+        context,
+        request=request
     )
     return JsonResponse({'html': render})
