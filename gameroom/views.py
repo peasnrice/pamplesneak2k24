@@ -83,6 +83,15 @@ def joingame(request, game_id, slug):
     players_dict = {p.id: p.name for p in players_query}
     form = MessageSender(players_dict)
 
+    game_words = Word.objects.filter(game=game_id).filter(send_to=player).order_by('created')
+    player_word = ""
+    if not game_words:
+        player_word = ""
+    else:
+        player_word = game_words[0].word
+        if game_words[0].created_by:
+            sender = game_words[0].created_by
+
     context = {
         'form': form,
         'word': random.choice(WORDS),
@@ -92,6 +101,7 @@ def joingame(request, game_id, slug):
         'player': player,
         'players': all_players_query.order_by('-succesful_sneaks'),
         'player_count': players_query.count(),
+        'player_word': player_word
     }
 
     return render(request, 'gameroom/ingame.html', context)
@@ -111,15 +121,15 @@ def send_word(request, game_id):
         if form.is_valid():
             # Process the form data and create a Word object
             word = form.cleaned_data['word']
-            to_player_id = form.cleaned_data['player']
+            to_player_id = form.cleaned_data['target']
             to_player = Player.objects.get(id=to_player_id)
             created_by = None if form.cleaned_data['send_anonymously'] else player
 
             Word.objects.create(
                 word=word, 
-                player=to_player, 
+                player=player, 
                 game=game, 
-                send_to=player, 
+                send_to=to_player, 
                 created_by=created_by
             )
 
@@ -137,7 +147,7 @@ def send_word(request, game_id):
     return render(request, 'gameroom/ingame.html', context)
 
 def refresh_word(request, game_id, player_id):
-    game_words = Word.objects.filter(game=game_id, player=player_id).order_by('created')
+    game_words = Word.objects.filter(game=game_id, send_to=player_id).order_by('created')
     player_word = game_words[0].word if game_words else ""
     sender = game_words[0].created_by.name if game_words and game_words[0].created_by else "anonymous"
 
