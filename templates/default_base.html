@@ -37,7 +37,7 @@
             </div>
             <!-- Primary Navbar items -->
             <div class="hidden md:flex items-center space-x-1">
-              <a class="py-2 px-3 text-gray-700 hover:text-gray-900" href="/pamplesneak/pampleplay">Pamplesneak
+              <a class="py-2 px-3 text-gray-700 hover:text-gray-900" href="/gameroom/pampleplay">Pamplesneak
                 Lobby</a>
               {% if user.is_authenticated %}
               <a class="py-2 px-3 text-gray-700 hover:text-gray-900" href="/pampleprofile">{{ user.username }}</a>
@@ -74,7 +74,7 @@
   </div>
 
   <div id="jumbotron" class="mt-16">
-    <div class="bg-gray-200 py-8">
+    <div class="bg-gray-200 py-2">
       <div class="container mx-auto px-6">
         {% block jumbotron %}{% endblock %}
       </div>

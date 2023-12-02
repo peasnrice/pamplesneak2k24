@@ -146,16 +146,32 @@ def send_word(request, game_id):
 def refresh_word(request, game_id, player_id):
     game_words = Word.objects.filter(game=game_id, send_to=player_id).order_by('created')
     player_word = game_words[0].word if game_words else ""
-    sender = game_words[0].created_by.name if game_words and game_words[0].created_by else "anonymous"
+
+    game = get_object_or_404(Game, pk=game_id)
+    player = get_object_or_404(Player, pk=player_id)
+
+    game_words = Word.objects.filter(game=game_id).filter(send_to=player).filter(completed=False).order_by('created')
+    number_of_words = game_words.count
+    if not game_words:
+        player_word = None
+    else:
+        player_word = game_words[0]
 
     context = {
         'player_word': player_word,
-        'game_id': game_id,
-        'player_id': player_id,
+        'game': game,
+        'player': player,
+        'number_of_words': number_of_words,
     }
 
-    html = render_to_string('gameroom/playerword.html', context, request=request)
-    return JsonResponse({'html': html})
+    # You can now directly use game_word for the context
+    render = render_to_string(
+        "gameroom/playerword.html", 
+        context,
+        request=request
+    )
+
+    return JsonResponse({'html': render})
 
 def word_success(request, word_id, game_id, player_id):
     game_word = Word.objects.get(id=word_id)
@@ -171,6 +187,7 @@ def word_success(request, word_id, game_id, player_id):
     game = get_object_or_404(Game, pk=game_id)
 
     game_words = Word.objects.filter(game=game_id).filter(send_to=player).filter(completed=False).order_by('created')
+    number_of_words = game_words.count
     if not game_words:
         player_word = None
     else:
@@ -180,6 +197,7 @@ def word_success(request, word_id, game_id, player_id):
         'player_word': player_word,
         'game': game,
         'player': player,
+        'number_of_words': number_of_words,
     }
 
     # You can now directly use game_word for the context
@@ -205,6 +223,7 @@ def word_fail(request, word_id, game_id, player_id):
     game = get_object_or_404(Game, pk=game_id)
 
     game_words = Word.objects.filter(game=game_id).filter(send_to=player).filter(completed=False).order_by('created')
+    number_of_words = game_words.count
     if not game_words:
         player_word = None
     else:
@@ -214,6 +233,7 @@ def word_fail(request, word_id, game_id, player_id):
         'player_word': player_word,
         'game': game,
         'player': player,
+        'number_of_words': number_of_words,
     }
 
     # You can now directly use game_word for the context
