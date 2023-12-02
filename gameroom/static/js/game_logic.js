@@ -97,6 +97,7 @@ async function refresh_word(gameId, playerId) {
 
     console.log($('#player_word').find('#word_not_present'))
 
+    const wordCurrentlyNotPresent = $('#player_word').find('#word_not_present').length > 0;
     const gameWordDisplayStyle = $('.game_word').css('display');
 
 
@@ -113,6 +114,12 @@ async function refresh_word(gameId, playerId) {
             const data = await response.json();
             $('#player_word').html(data.html);
             $('.game_word').css('display', gameWordDisplayStyle);
+
+            const wordNowPresent = $('#player_word').find('#word_present').length > 0;
+            if (wordCurrentlyNotPresent && wordNowPresent) {
+                $('.game_word').hide();
+            }
+
         } else {
             console.error(`HTTP error! status: ${response.status}`);
         }
