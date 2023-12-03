@@ -31,17 +31,37 @@
   <div class="my-4">
     {% include "gameroom/playerword.html" %}
   </div>
-  <div class="my-4 text-center">
-    <button id="random_word_button" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded" onclick="randomize_word();">
-      Random Word
-    </button>
-    <button id="random_player_button" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded" onclick="randomPlayer();">
-      Random Player
-    </button>
-    {% include "gameroom/messageform.html" %}
+ <!-- Level Selectors -->
+ <div class="my-4 flex justify-center space-x-4">
+  <div>
+    <label for="obscurity_level" class="block text-sm font-medium text-gray-700">Obscurity Level</label>
+    <select id="obscurity_level" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+      {% for i in range1_10 %}
+        <option value="{{ i }}">{{ i }}</option>
+      {% endfor %}
+    </select>
   </div>
-  <div id="collapseStats" class="collapse">
-    {% include "gameroom/ingamestats.html" %}
+  <div>
+    <label for="silliness_level" class="block text-sm font-medium text-gray-700">Silliness Level</label>
+    <select id="silliness_level" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+      {% for i in range1_10 %}
+        <option value="{{ i }}">{{ i }}</option>
+      {% endfor %}
+    </select>
   </div>
+</div>
+
+<div class="my-4 text-center">
+  <button id="random_word_button" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded">
+    Random Word
+  </button>
+  <button id="random_player_button" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded">
+    Random Player
+  </button>
+  {% include "gameroom/messageform.html" %}
+</div>
+<div id="collapseStats" class="collapse">
+  {% include "gameroom/ingamestats.html" %}
+</div>
 </div>
 {% endblock %}

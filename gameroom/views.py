@@ -7,7 +7,17 @@ from gameroom.forms import MessageSender, GameRoomForm
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.contrib import messages
+from openai import OpenAI
+from django.conf import settings
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 import random
+import json
+import traceback
+from django.conf import settings
+
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
 
 # Initialize words list
 def load_words():
@@ -98,7 +108,8 @@ def joingame(request, game_id, slug):
         'player': player,
         'players': all_players_query.order_by('-succesful_sneaks'),
         'player_count': players_query.count(),
-        'player_word': player_word
+        'player_word': player_word,
+        'range1_10': range(1, 11),
     }
 
     return render(request, 'gameroom/ingame.html', context)
@@ -162,6 +173,7 @@ def refresh_word(request, game_id, player_id):
         'game': game,
         'player': player,
         'number_of_words': number_of_words,
+        'range1_10': range(1, 11),
     }
 
     # You can now directly use game_word for the context
@@ -198,6 +210,7 @@ def word_success(request, word_id, game_id, player_id):
         'game': game,
         'player': player,
         'number_of_words': number_of_words,
+        'range1_10': range(1, 11),
     }
 
     # You can now directly use game_word for the context
@@ -234,6 +247,7 @@ def word_fail(request, word_id, game_id, player_id):
         'game': game,
         'player': player,
         'number_of_words': number_of_words,
+        'range1_10': range(1, 11),
     }
 
     # You can now directly use game_word for the context
@@ -243,3 +257,30 @@ def word_fail(request, word_id, game_id, player_id):
         request=request
     )
     return JsonResponse({'html': render})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def openai_request(request):
+    try:
+        data = json.loads(request.body)
+        obscurity = data.get('obscurity')
+        silliness = data.get('silliness')
+
+        random_element = random.choice(["", "Be creative.", "Think outside the box.", "Surprise me."])
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": f"You are a generator for words or phrases, with adjustable levels of obscurity (0-10) and silliness (0-10). {random_element} Your output should be covertly usable in conversation and limited to 64 characters."},
+                {"role": "user", "content": f"Generate a phrase with obscurity level {obscurity} and silliness factor {silliness}."},
+            ],
+            temperature=0.9
+        )
+
+        print("OpenAI API Response:", response.choices[0].message.content)
+        return JsonResponse({'response_text': response.choices[0].message.content})
+
+    except Exception as e:
+        traceback.print_exc()  # Print full traceback
+        return JsonResponse({'error': str(e)}, status=500)

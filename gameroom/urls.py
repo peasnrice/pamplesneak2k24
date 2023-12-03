@@ -13,4 +13,6 @@ urlpatterns = [
     path('ajax/refresh_word/<int:game_id>/<int:player_id>/', views.refresh_word, name='refresh_word'),
     path('ajax/word_success/<int:word_id>/<int:game_id>/<int:player_id>/', views.word_success, name='word_success'),
     path('ajax/word_fail/<int:word_id>/<int:game_id>/<int:player_id>/', views.word_fail, name='word_fail'),
+    path('ajax/openai_request/', views.openai_request, name='openai_request'),
+
 ]

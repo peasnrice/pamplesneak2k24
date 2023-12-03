@@ -19,6 +19,7 @@
     <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
     <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
   <![endif]-->
+  
   {% block head %}
   {% endblock %}
   {% tailwind_css %}
@@ -50,7 +51,7 @@
           </div>
           <!-- Mobile menu button -->
           <div class="md:hidden flex items-center">
-            <button class="mobile-menu-button">
+            <button id="hamburger-button" class="mobile-menu-button">
               <svg class="w-6 h-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 viewBox="0 0 24 24" stroke="currentColor">
                 <path d="M4 6h16M4 12h16M4 18h16"></path>
@@ -60,7 +61,7 @@
         </div>
       </div>
       <!-- mobile menu -->
-      <div class="mobile-menu hidden md:hidden">
+      <div id="mobile-menu" class="mobile-menu hidden md:hidden">
         <a class="block py-2 px-4 text-sm hover:bg-gray-200" href="/pamplesneak/pampleplay">Pamplesneak Lobby</a>
         {% if user.is_authenticated %}
         <a class="block py-2 px-4 text-sm hover:bg-gray-200" href="/pampleprofile">{{ user.username }}</a>
@@ -89,6 +90,16 @@
   <footer class="bg-white"></footer>
 
   {% block scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var hamburger = document.getElementById('hamburger-button');
+      var mobileMenu = document.getElementById('mobile-menu');
+  
+      hamburger.addEventListener('click', function() {
+        mobileMenu.classList.toggle('hidden');
+      });
+    });
+  </script>
   <script src="{% static 'js/game_logic.js' %}"></script>
 
   {% endblock %}

@@ -30,6 +30,10 @@ $(document).ready(function () {
         messageContainer.fadeIn().delay(5000).fadeOut();
     }
 
+    $('#random_word_button').click(randomize_word); // Bind the function to the button click
+    $('#random_player_button').click(randomize_player); // Bind the function to the button click
+
+
 });
 
 function getCookie(name) {
@@ -95,8 +99,6 @@ async function word_fail(wordId, gameId, playerId) {
 
 async function refresh_word(gameId, playerId) {
 
-    console.log($('#player_word').find('#word_not_present'))
-
     const wordCurrentlyNotPresent = $('#player_word').find('#word_not_present').length > 0;
     const gameWordDisplayStyle = $('.game_word').css('display');
 
@@ -127,4 +129,49 @@ async function refresh_word(gameId, playerId) {
     } catch (error) {
         console.error('Error in word_success:', error);
     }
+}
+
+async function randomize_word() {
+
+    var obscurity = $('#obscurity_level').val();
+    var silliness = $('#silliness_level').val();
+
+    try {
+        const response = await fetch('/gameroom/ajax/openai_request/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'obscurity': obscurity,
+                'silliness': silliness,
+                'max_tokens': 64
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data.response_text);
+
+            $('#id_word').val(data.response_text);
+
+        } else {
+            console.error(`HTTP error! status: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Error in randomize_word:', error);
+    }
+}
+
+async function randomize_player() {
+    // Get the dropdown element
+    var playerSelect = document.getElementById('id_target');
+
+    // Calculate a random index
+    var randomIndex = Math.floor(Math.random() * playerSelect.options.length);
+    console.log(randomIndex);
+
+    // Set the selected index
+    playerSelect.selectedIndex = randomIndex;
 }
