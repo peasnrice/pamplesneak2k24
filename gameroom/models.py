@@ -46,6 +46,7 @@ class Word(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     completed = models.BooleanField(default=False)
     successful = models.BooleanField(null=True)
+    skipped = models.BooleanField(null=True)
     validations_count = models.IntegerField(default=0)
     rejections_count = models.IntegerField(default=0)
 

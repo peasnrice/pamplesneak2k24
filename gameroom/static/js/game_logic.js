@@ -1,9 +1,21 @@
+var refreshIntervalId = null;
+
 $(document).ready(function () {
 
     $('.game_word').hide();
+    $('#show_button').hide();
+    $('#hide_button').show();
 
-    $('#player_word').on('click', '#reveal_button', function () {
-        $('.game_word').toggle();
+    $('#player_word').on('click', '#show_button', function () {
+        $('.game_word').show();
+        $('#show_button').hide();
+        $('#hide_button').show();
+    });
+
+    $('#player_word').on('click', '#hide_button', function () {
+        $('.game_word').hide();
+        $('#show_button').show();
+        $('#hide_button').hide();
     });
 
     $('#player_word').on('click', '#succeeded_button', function () {
@@ -20,8 +32,18 @@ $(document).ready(function () {
         word_fail(wordId, gameId, playerId);
     });
 
-    setInterval(refresh_word.bind(null, gameId, playerId), 10000);  // Refresh every 10 seconds
+    $('#player_word').on('click', '#skipped_button', function () {
+        const wordId = $(this).data('word-id');
+        const gameId = $(this).data('game-id');
+        const playerId = $(this).data('player-id');
+        word_fail(wordId, gameId, playerId);
+    });
+
+    if (!refreshIntervalId) {
+        refreshIntervalId = setInterval(refresh_word.bind(null, gameId, playerId), 10000);
+    }
     refresh_word(gameId, playerId);  // Initial call to refresh word
+
 
     // Message pop-up logic
     var messageContainer = $('#message-container');
@@ -41,6 +63,18 @@ $(document).ready(function () {
     $(document).on('click', '.reject_sneak', function () {
         var sneakId = $(this).closest('div[id]').attr('id');
         reject_sneak(sneakId);
+    });
+
+    $(document).on('click', '#show_button', function () {
+        $('.game_word').show();
+        $('#show_button').hide();
+        $('#hide_button').show();
+    });
+
+    $(document).on('click', '#hide_button', function () {
+        $('.game_word').hide();
+        $('#show_button').show();
+        $('#hide_button').hide();
     });
 
 });
@@ -106,10 +140,34 @@ async function word_fail(wordId, gameId, playerId) {
     }
 }
 
+async function word_skip(wordId, gameId, playerId) {
+    try {
+        const response = await fetch(`/gameroom/ajax/word_skip/${wordId}/${gameId}/${playerId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            $('#player_word').html(data.html);
+            $('.game_word').hide();
+        } else {
+            console.error(`HTTP error! status: ${response.status}`);
+        }
+
+    } catch (error) {
+        console.error('Error in word_success:', error);
+    }
+}
+
 async function refresh_word(gameId, playerId) {
 
     const wordCurrentlyNotPresent = $('#player_word').find('#word_not_present').length > 0;
     const gameWordDisplayStyle = $('.game_word').css('display');
+    console.log(gameWordDisplayStyle)
 
 
     try {
@@ -125,10 +183,19 @@ async function refresh_word(gameId, playerId) {
             const data = await response.json();
             $('#player_word').html(data.html);
             $('.game_word').css('display', gameWordDisplayStyle);
+            if (gameWordDisplayStyle == 'none') {
+                $('#show_button').show();
+                $('#hide_button').hide();
+            } else {
+                $('#show_button').hide();
+                $('#hide_button').show();
+            }
 
             const wordNowPresent = $('#player_word').find('#word_present').length > 0;
             if (wordCurrentlyNotPresent && wordNowPresent) {
                 $('.game_word').hide();
+                $('#show_button').show();
+                $('#hide_button').hide();
             }
 
         } else {

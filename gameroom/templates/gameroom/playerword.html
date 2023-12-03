@@ -1,10 +1,11 @@
 <div id="player_word" class="text-center">
-    {% if player_word %}
+    {% if player_word and player_word.completed == False %}
     <div id="word_present">
         <h1 class="text-xl font-bold">You have {{ number_of_words }} word{{ number_of_words|pluralize }} in your queue</h1>
         <h1 class="text-xl font-bold">YOUR CURRENT WORD IS</h1>
-        <button id="reveal_button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">Show/Hide Word</button>
-        <div class="game_word mt-4" style="display: none;">
+        <button id="show_button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">Show Word</button>
+        <button id="hide_button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">Hide Word</button>
+        <div class="game_word mt-4">
             <h2 class="text-2xl font-bold">{{ player_word.word }}</h2>
         </div>
         <p class="mt-2">sent by
@@ -19,6 +20,9 @@
         </button> <b>/</b>
         <button id="failed_button" data-word-id="{{ player_word.id }}" data-game-id="{{ game.id }}" data-player-id="{{ player.id }}" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-2 rounded text-xs">
             Failed
+        </button> <b>/</b>
+        <button id="skipped_button" data-word-id="{{ player_word.id }}" data-game-id="{{ game.id }}" data-player-id="{{ player.id }}" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-2 rounded text-xs">
+            Skip!
         </button>
         </p>
     </div>

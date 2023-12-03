@@ -297,6 +297,42 @@ def word_fail(request, word_id, game_id, player_id):
     )
     return JsonResponse({'html': render})
 
+def word_skip(request, word_id, game_id, player_id):
+    game_word = Word.objects.get(id=word_id)
+    # Perform the success logic here
+    game_word.completed = True
+    game_word.successful = False
+    game_word.skipped = True
+    game_word.save()
+
+    player = game_word.send_to
+    player.failed_sneaks = Word.objects.filter(send_to=player, successful=False).count()
+    player.save()
+
+    game = get_object_or_404(Game, pk=game_id)
+
+    game_words = Word.objects.filter(game=game_id).filter(send_to=player).filter(completed=False).order_by('created')
+    number_of_words = game_words.count
+    if not game_words:
+        player_word = None
+    else:
+        player_word = game_words[0]
+
+    context = {
+        'player_word': player_word,
+        'game': game,
+        'player': player,
+        'number_of_words': number_of_words,
+        'range1_10': range(1, 11),
+    }
+
+    # You can now directly use game_word for the context
+    render = render_to_string(
+        "gameroom/playerword.html", 
+        context,
+        request=request
+    )
+    return JsonResponse({'html': render})
 
 @csrf_exempt
 @require_http_methods(["POST"])
