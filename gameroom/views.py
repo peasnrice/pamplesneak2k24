@@ -232,7 +232,7 @@ def word_success(request, word_id, game_id, player_id):
     game_word.save()
 
     player = game_word.send_to
-    player.succesful_sneaks = Word.objects.filter(send_to=player, successful=True).count()
+    player.succesful_sneaks = Word.objects.filter(send_to=player, game=game_id, successful=True).count()
     player.save()
 
     game = get_object_or_404(Game, pk=game_id)
