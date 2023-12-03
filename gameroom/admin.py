@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Game, Player, Word
+from .models import Game, Player, Word, Vote
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
@@ -14,4 +14,9 @@ class PlayerAdmin(admin.ModelAdmin):
 @admin.register(Word)
 class WordAdmin(admin.ModelAdmin):
     list_display = ['word', 'game', 'created']
+    # Add more admin options as needed
+
+@admin.register(Vote)
+class VoteAdmin(admin.ModelAdmin):
+    list_display = ['word', 'player', 'vote_type']
     # Add more admin options as needed

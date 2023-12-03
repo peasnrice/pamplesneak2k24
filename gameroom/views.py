@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
-from gameroom.models import Game, Player, Word
+from gameroom.models import Game, Player, Word, Vote
 from users.models import CustomUser, UserProfile
 from gameroom.forms import MessageSender, GameRoomForm
 from django.template.loader import render_to_string
@@ -115,6 +115,45 @@ def joingame(request, game_id, slug):
     return render(request, 'gameroom/ingame.html', context)
 
 @login_required
+@never_cache
+def stats(request, game_id, slug):
+    game = get_object_or_404(Game, pk=game_id)
+    user = request.user
+    player, created = Player.objects.get_or_create(
+        game=game, user=user, defaults={'name': user.username}
+    )
+
+
+    all_players_query = Player.objects.filter(game=game).order_by('-succesful_sneaks')
+
+    successful_sneaks = Word.objects.filter(
+        game=game, 
+        successful=True
+    ).select_related('player', 'created_by')
+
+    failed_sneaks = Word.objects.filter(
+        game=game, 
+        successful=False
+    ).select_related('player', 'created_by')
+
+    received_sneaks = Word.objects.filter(
+        game=game, 
+    ).select_related('player', 'created_by')
+
+    context = {
+        'players': all_players_query,
+        'successful_sneaks': successful_sneaks,
+        'failed_sneaks': failed_sneaks,
+        'received_sneaks': received_sneaks,
+        'user_id': request.user.id,
+        'player': player,
+        'game': game,
+    }
+
+    return render(request, 'gameroom/ingamestats.html', context)
+
+
+@login_required
 def send_word(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     player, created = Player.objects.get_or_create(
@@ -193,7 +232,7 @@ def word_success(request, word_id, game_id, player_id):
     game_word.save()
 
     player = game_word.send_to
-    player.succesful_sneaks += 1
+    player.succesful_sneaks = Word.objects.filter(send_to=player, successful=True).count()
     player.save()
 
     game = get_object_or_404(Game, pk=game_id)
@@ -230,7 +269,7 @@ def word_fail(request, word_id, game_id, player_id):
     game_word.save()
 
     player = game_word.send_to
-    player.failed_sneaks += 1
+    player.failed_sneaks = Word.objects.filter(send_to=player, successful=False).count()
     player.save()
 
     game = get_object_or_404(Game, pk=game_id)
@@ -284,3 +323,45 @@ def openai_request(request):
     except Exception as e:
         traceback.print_exc()  # Print full traceback
         return JsonResponse({'error': str(e)}, status=500)
+    
+
+def validate_sneak(request, game_id):
+    game = get_object_or_404(Game, pk=game_id)
+    user = request.user
+    player, created = Player.objects.get_or_create(
+        game=game, user=user, defaults={'name': user.username}
+    )
+    data = json.loads(request.body)
+    sneak_id = data.get('sneak_id')
+    sneak = get_object_or_404(Word, id=sneak_id)
+
+    vote, created = Vote.objects.get_or_create(word=sneak, player=player, defaults={'vote_type': 'validate'})
+    vote.vote_type = 'validate'
+    vote.save()
+    sneak = get_object_or_404(Word, id=sneak_id)
+
+    if not created:
+        print("vote note created")
+    return JsonResponse({'validations_count': sneak.validations_count, 'rejections_count': sneak.rejections_count})
+
+def reject_sneak(request, game_id):
+    game = get_object_or_404(Game, pk=game_id)
+    user = request.user
+    player, created = Player.objects.get_or_create(
+        game=game, user=user, defaults={'name': user.username}
+    )
+
+    data = json.loads(request.body)
+    sneak_id = data.get('sneak_id')
+    sneak = get_object_or_404(Word, id=sneak_id)
+
+    vote, created = Vote.objects.get_or_create(word=sneak, player=player, defaults={'vote_type': 'reject'})
+    vote.vote_type = 'reject'
+    vote.save()
+    print(sneak.validations_count)
+    sneak = get_object_or_404(Word, id=sneak_id)
+
+    if not created:
+        print("vote note created")
+
+    return JsonResponse({'validations_count': sneak.validations_count, 'rejections_count': sneak.rejections_count})

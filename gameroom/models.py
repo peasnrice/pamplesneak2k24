@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.template.defaultfilters import slugify
+from django.conf import settings
+
 
 User = get_user_model()
 
@@ -30,6 +32,7 @@ class Player(models.Model):
     nick = models.CharField(max_length=64, null=True, blank=True)
     succesful_sneaks = models.IntegerField(default=0)
     failed_sneaks = models.IntegerField(default=0)
+    received_sneaks = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -43,6 +46,32 @@ class Word(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     completed = models.BooleanField(default=False)
     successful = models.BooleanField(null=True)
+    validations_count = models.IntegerField(default=0)
+    rejections_count = models.IntegerField(default=0)
 
     def __str__(self):
         return self.word
+
+class Vote(models.Model):
+    word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name='votes')
+    player = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='votes')
+    vote_type = models.CharField(max_length=10, choices=(('validate', 'Validate'), ('reject', 'Reject')))
+
+    class Meta:
+        unique_together = ('word', 'player')
+
+    def __str__(self):
+        return f"{self.player}'s vote on '{self.word}'"
+
+    def save(self, *args, **kwargs):
+        # Call the real save() method
+        super().save(*args, **kwargs)
+
+        # Update the Word instance
+        validations = Vote.objects.filter(word=self.word, vote_type='validate').count()
+        rejections = Vote.objects.filter(word=self.word, vote_type='reject').count()
+
+        # Update the Word instance
+        self.word.validations_count = validations
+        self.word.rejections_count = rejections
+        self.word.save()

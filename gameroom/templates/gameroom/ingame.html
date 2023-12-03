@@ -17,6 +17,14 @@
 {% endblock %}
 
 {% block content %}
+
+<div class="my-4 text-center">
+  <!-- ...existing buttons... -->
+  <a href="{% url 'gameroom:stats' game_id=game.id slug=game.slug %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    Game Stats
+  </a>
+</div>
+
 <div class="container mx-auto px-4">
     {% if messages %}
         <div id="message-container" class="fixed top-0 left-1/2 transform -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-md text-center hidden">
