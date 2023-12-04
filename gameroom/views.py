@@ -19,15 +19,6 @@ from django.conf import settings
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
-# Initialize words list
-def load_words():
-    word_file = "/usr/share/dict/words"
-    with open(word_file) as file:
-        return file.read().splitlines()
-    
-WORDS = load_words()
-
-
 # getActiveGames function now utilizes Django ORM efficiently
 def getActiveGames():
     return Game.objects.filter(active=True).order_by('-created')
@@ -69,8 +60,6 @@ def joingame(request, game_id, slug):
     game = get_object_or_404(Game, pk=game_id)
     user = request.user
 
-    word_list = random.sample(WORDS, min(len(WORDS), game.word_bank_size))
-
     # Creating or retrieving the player
     player, created = Player.objects.get_or_create(
         game=game, user=user, defaults={'name': user.username}
@@ -101,8 +90,6 @@ def joingame(request, game_id, slug):
 
     context = {
         'form': form,
-        'word': random.choice(WORDS),
-        'word_list': word_list,
         'word_bank_size': game.word_bank_size,
         'game': game,
         'player': player,
@@ -122,7 +109,6 @@ def stats(request, game_id, slug):
     player, created = Player.objects.get_or_create(
         game=game, user=user, defaults={'name': user.username}
     )
-
 
     all_players_query = Player.objects.filter(game=game).order_by('-succesful_sneaks')
 
@@ -232,7 +218,7 @@ def word_success(request, word_id, game_id, player_id):
     game_word.save()
 
     player = game_word.send_to
-    player.succesful_sneaks = Word.objects.filter(send_to=player, game=game_id, successful=True).count()
+    player.succesful_sneaks = Word.objects.filter(send_to=player, successful=True).count()
     player.save()
 
     game = get_object_or_404(Game, pk=game_id)
