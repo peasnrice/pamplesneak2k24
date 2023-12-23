@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "widget_tweaks",
     "users",
     "gameroom",
+    "pamplesneak",
 ]
 
 MIDDLEWARE = [

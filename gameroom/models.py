@@ -49,7 +49,7 @@ class Word(models.Model):
         null=True,
         blank=True,
     )
-    word = models.CharField(max_length=64)
+    word = models.CharField(max_length=128)
     created_by = models.ForeignKey(
         "Player",
         on_delete=models.SET_NULL,
@@ -100,3 +100,16 @@ class Vote(models.Model):
         self.word.validations_count = validations
         self.word.rejections_count = rejections
         self.word.save()
+
+
+class ExampleWord(models.Model):
+    word = models.CharField(max_length=128)
+    category = models.CharField(max_length=64)
+    difficulty = models.IntegerField(default=0)
+    note = models.CharField(max_length=128, null=True, blank=True)
+
+    def __str__(self):
+        if self.note:
+            return f"{self.word} - {self.note}"
+        else:
+            return self.word
