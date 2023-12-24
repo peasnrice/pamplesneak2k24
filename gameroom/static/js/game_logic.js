@@ -77,7 +77,21 @@ $(document).ready(function () {
         $('#hide_button').hide();
     });
 
+    // Show QR Code
+    $(document).on('click', '#show_qr_code_button', function () {
+        $('#qrCodeImage').show();
+        $('#show_qr_code_button').hide();
+        $('#hide_qr_code_button').show();
+    });
+
+    // Hide QR Code
+    $(document).on('click', '#hide_qr_code_button', function () {
+        $('#qrCodeImage').hide();
+        $('#show_qr_code_button').show();
+        $('#hide_qr_code_button').hide();
+    });
 });
+
 
 function getCookie(name) {
     let cookieValue = null;

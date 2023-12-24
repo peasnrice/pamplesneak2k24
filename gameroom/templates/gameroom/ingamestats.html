@@ -17,121 +17,137 @@
 {% endblock %}
 
 {% block content %}
-<div class="my-4 text-center">
-    <a href="{% url 'gameroom:joingame' game_id=game.id slug=game.slug %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-      Back to the game!
-    </a>
-</div>
+<div class="container mx-auto px-4"> 
+    <div class="my-4 text-center">
+        <a href="{% url 'gameroom:joingame' game_id=game.id slug=game.slug %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+        Back to the game!
+        </a>
+    </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <!-- Successful Sneak Claims Column -->
-    <div>
-        <h2 class="text-2xl font-bold mb-4">Successful Sneak Claims</h2>
-        <div class="space-y-3">
-            {% for sneak in successful_sneaks %}
-                <div id="{{ sneak.id }}" class="p-4 border border-gray-200 rounded-lg shadow">
-                    <p>
-                        <strong class="font-semibold">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Successful Sneak Claims Column -->
+        <div>
+            <h2 class="text-2xl font-bold mb-4">Successful Sneak Claims</h2>
+            <div class="space-y-3">
+                {% for sneak in successful_sneaks %}
+                    <div id="{{ sneak.id }}" class="p-4 border border-gray-200 rounded-lg shadow">
+                        <p>
+                            <strong class="font-semibold">
+                                {% if user_id == sneak.send_to.user_id %}
+                                    You
+                                {% else %}
+                                    {{ sneak.send_to.name }}
+                                {% endif %}
+                            </strong> 
                             {% if user_id == sneak.send_to.user_id %}
-                                You
+                                claimed to have successfully sneaked  
                             {% else %}
-                                {{ sneak.send_to.name }}
+                                claims they have successfully sneaked  
                             {% endif %}
-                        </strong> 
-                        {% if user_id == sneak.send_to.user_id %}
-                            claimed to have successfully sneaked  
-                        {% else %}
-                            claims they have successfully sneaked  
+                            <strong class="font-semibold">"{{ sneak.word }}"</strong>
+                            into conversation
+                        </p>
+                        <!-- Voting Mechanism (assuming user is signed in) -->
+                        {% if user_id != sneak.send_to.user_id %}
+                            <div>
+                                <button class="validate_sneak mr-2 px-2 py-1 bg-green-500 text-white rounded">Validate</button>
+                                <button class="reject_sneak px-2 py-1 bg-red-500 text-white rounded">Reject</button>
+                            </div>
                         {% endif %}
-                        <strong class="font-semibold">"{{ sneak.word }}"</strong>
-                        into conversation
-                    </p>
-                    <!-- Voting Mechanism (assuming user is signed in) -->
-                    {% if user_id != sneak.send_to.user_id %}
-                        <div>
-                            <button class="validate_sneak mr-2 px-2 py-1 bg-green-500 text-white rounded">Validate</button>
-                            <button class="reject_sneak px-2 py-1 bg-red-500 text-white rounded">Reject</button>
+                        <!-- Displaying Votes -->
+                        <div class="votes">
+                            {% if sneak.validations_count == 0 and sneak.rejections_count == 0 %}
+                                <p>No witnesses</p>
+                            {% else %}
+                                <p>
+                                    Validations: <strong>{{ sneak.validations_count }} 🌟</strong>, 
+                                    Rejections: <strong>{{ sneak.rejections_count }} 💔</strong>
+                                </p>
+                            {% endif %}
                         </div>
-                    {% endif %}
-                    <!-- Displaying Votes -->
-                    <div class="votes">
-                        {% if sneak.validations_count == 0 and sneak.rejections_count == 0 %}
-                            <p>No witnesses</p>
-                        {% else %}
-                            <p>
-                                Validations: <strong>{{ sneak.validations_count }} 🌟</strong>, 
-                                Rejections: <strong>{{ sneak.rejections_count }} 💔</strong>
-                            </p>
-                        {% endif %}
                     </div>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-    
-
-    <!-- Failed Sneaks Column -->
-    <div>
-        <h2 class="text-2xl font-bold mb-4">Failed Sneaks</h2>
-        <div class="space-y-3">
-            {% for sneak in failed_sneaks %}
-                <div class="p-4 border border-gray-200 rounded-lg shadow">
-                    <p><strong class="font-semibold">Phrase/Word:</strong> {{ sneak.word }}</p>
-                    <p><strong class="font-semibold">Sent by:</strong> {{ sneak.created_by.name }}</p>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- Player Stats Column -->
-    <div id="ingame_stats" class="flex-1 px-4">
-        <h2 class="text-2xl font-bold mb-4">Leaderboard</h2>
-        {% if players %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left font-medium text-gray-900">Player</th>
-                            <th scope="col" class="px-6 py-3 text-left font-medium text-gray-900">Successful Sneaks</th>
-                            <th scope="col" class="px-6 py-3 text-left font-medium text-gray-900">Failed Sneaks</th>
-                            <th scope="col" class="px-6 py-3 text-left font-medium text-gray-900">Received Sneaks</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for player in players %}
-                            <tr>
-                                <td class="px-6 py-4 font-medium text-gray-900">
-                                    {{ player.name }}
-                                    {% if forloop.counter <= 3 %}
-                                        {% if forloop.counter == 1 %}
-                                            🥇
-                                        {% elif forloop.counter == 2 %}
-                                            🥈
-                                        {% else %}
-                                            🥉
-                                        {% endif %}
-                                    {% endif %}
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{ player.succesful_sneaks }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{ player.failed_sneaks }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{ player.received_sneaks }}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                {% endfor %}
             </div>
-        {% else %}
-            <p class="text-gray-500">There are no stats</p>
-        {% endif %}
+        </div>
+        
+
+        <!-- Failed Sneaks Column -->
+        <div>
+            <h2 class="text-2xl font-bold mb-4">Failed Sneaks</h2>
+            <div class="space-y-3">
+                {% for sneak in failed_sneaks %}
+                    <div class="p-4 border border-gray-200 rounded-lg shadow">
+                        <p><strong class="font-semibold">Phrase/Word:</strong> {{ sneak.word }}</p>
+                        <p><strong class="font-semibold">Sent by:</strong> {{ sneak.created_by.name }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Player Stats Column -->
+        <div id="ingame_stats" class="flex-1 px-4">
+            <h2 class="text-2xl font-bold mb-4">Leaderboard</h2>
+            {% if players %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left font-medium text-gray-900">Player</th>
+                                <th scope="col" class="px-6 py-3 text-left font-medium text-gray-900">Successful Sneaks</th>
+                                <th scope="col" class="px-6 py-3 text-left font-medium text-gray-900">Failed Sneaks</th>
+                                <th scope="col" class="px-6 py-3 text-left font-medium text-gray-900">Received Sneaks</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for player in players %}
+                                <tr>
+                                    <td class="px-6 py-4 font-medium text-gray-900">
+                                        {{ player.name }}
+                                        {% if forloop.counter <= 3 %}
+                                            {% if forloop.counter == 1 %}
+                                                🥇
+                                            {% elif forloop.counter == 2 %}
+                                                🥈
+                                            {% else %}
+                                                🥉
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ player.succesful_sneaks }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ player.failed_sneaks }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ player.received_sneaks }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-gray-500">There are no stats</p>
+            {% endif %}
+        </div>
+
+        <div class="text-center my-4"> <!-- This div centers its children -->
+            <!-- Show QR Code Button -->
+            <button id="show_qr_code_button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                Show Share Game Code
+            </button>
+          
+            <!-- Hide QR Code Button -->
+            <button id="hide_qr_code_button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded hidden">
+                Hide
+            </button>
+          
+            <!-- QR Code Image Container -->
+            <div class="flex justify-center mt-4">
+                <img src="{% url 'gameroom:qr_code' game_id=game.id slug=game.slug %}" alt="QR Code" id="qrCodeImage" class="hidden">
+            </div>
+        </div>
     </div>
-
-
-
 </div>
 {% endblock %}

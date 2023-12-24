@@ -7,16 +7,20 @@ from gameroom.forms import MessageSender, GameRoomForm
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.contrib import messages
-from openai import OpenAI
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import random
 import json
 import traceback
-from django.conf import settings
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+# QR Code Generation imports
+import qrcode
+from PIL import Image
+from io import BytesIO
+from django.http import HttpResponse
+
+from django.conf import settings
 
 
 # getActiveGames function now utilizes Django ORM efficiently
@@ -438,3 +442,27 @@ def reject_sneak(request, game_id):
             "rejections_count": sneak.rejections_count,
         }
     )
+
+
+def qr_code_view(request, game_id, slug):
+    # Construct your game room URL based on the game_id
+    game_room_url = f"http://pamplesneak.fly.dev/gameroom/pampleplay/{game_id}/{slug}"
+    qr_image = generate_qr_code(game_room_url)
+    return HttpResponse(qr_image, content_type="image/png")
+
+
+def generate_qr_code(url):
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    img_io = BytesIO()
+    img.save(img_io, "PNG")
+    img_io.seek(0)
+    return img_io
