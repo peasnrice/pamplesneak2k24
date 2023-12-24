@@ -1,0 +1,60 @@
+{% extends "default_base.html" %}
+
+{% load static %}
+
+{% block jumbotron %}
+<div class="flex flex-col h-screen">
+
+  <!-- JOIN Section -->
+  <div class="w-full flex-grow" style="background-color: #1E7B4F; display: flex; align-items: center; justify-content: center;">
+    <div class="text-center">
+      <h1 class="text-4xl font-bold text-white">Join a Game</h1>
+      <p class="text-lg text-white">Enter your game room code below.</p>
+      <form action="{% url 'gameroom:joingame2' %}" method="post" class="flex justify-center items-center">
+        {% csrf_token %}
+        <div class="flex">
+          {{ join_game.game_room_code }}
+          <button type="submit" class="bg-yellow-400 text-black font-bold py-2 px-4 rounded hover:bg-yellow-500 ml-4">
+            JOIN
+          </button>
+        </div>
+      </form>
+      {% if messages %}
+        <div class="mt-4">
+          {% for message in messages %}
+            {% if 'logged in' not in message %}
+                <div class="{{ message.tags }}">{{ message }}</div>
+            {% endif %}
+              <div class="{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- HOST Section -->
+  <div class="w-full flex-grow" style="background-color: #E7A13D; display: flex; align-items: center; justify-content: center;">
+    <div class="text-center">
+      <h1 class="text-4xl font-bold text-white">Host a Game</h1>
+      <p class="text-lg text-white">What's the occasion?</p>
+      <form action="{% url 'gameroom:creategame' %}" method="POST" class="flex justify-center items-center">
+        {% csrf_token %}
+        <!-- Manually render the form field -->
+        <div class="flex">
+          {{ create_game.game_name }}
+          <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 ml-4">
+            HOST
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  
+
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Additional content can go here -->
+{% endblock %}

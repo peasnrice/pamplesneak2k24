@@ -3,7 +3,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from gameroom.models import Game, Player, Word, Vote, ExampleWord
 from users.models import CustomUser, UserProfile
-from gameroom.forms import MessageSender, GameRoomForm
+from gameroom.forms import MessageSender, CreateGameForm, JoinGameForm
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.contrib import messages
@@ -57,7 +57,7 @@ class GameInfo:
 @login_required
 def creategame(request):
     if request.method == "POST":
-        form = GameRoomForm(request.POST)
+        form = CreateGameForm(request.POST)
         if form.is_valid():
             save_game = form.save(commit=False)
             save_game.active = True
@@ -65,7 +65,7 @@ def creategame(request):
             # Redirect directly to the play view
             return redirect("gameroom:pampleplay")
     else:
-        form = GameRoomForm()
+        form = CreateGameForm()
     return render(request, "gameroom/create.html", {"form": form})
 
 
@@ -352,39 +352,39 @@ def word_skip(request, word_id, game_id, player_id):
     return JsonResponse({"html": render})
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def openai_request(request):
-    try:
-        data = json.loads(request.body)
-        obscurity = data.get("obscurity")
-        silliness = data.get("silliness")
+# @csrf_exempt
+# @require_http_methods(["POST"])
+# def openai_request(request):
+#     try:
+#         data = json.loads(request.body)
+#         obscurity = data.get("obscurity")
+#         silliness = data.get("silliness")
 
-        random_element = random.choice(
-            ["", "Be creative.", "Think outside the box.", "Surprise me."]
-        )
+#         random_element = random.choice(
+#             ["", "Be creative.", "Think outside the box.", "Surprise me."]
+#         )
 
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"You are a generator for words or phrases, with adjustable levels of obscurity (0-10) and silliness (0-10). {random_element} Your output should be covertly usable in conversation and limited to 64 characters.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Generate a phrase with obscurity level {obscurity} and silliness factor {silliness}.",
-                },
-            ],
-            temperature=0.9,
-        )
+#         response = client.chat.completions.create(
+#             model="gpt-3.5-turbo",
+#             messages=[
+#                 {
+#                     "role": "system",
+#                     "content": f"You are a generator for words or phrases, with adjustable levels of obscurity (0-10) and silliness (0-10). {random_element} Your output should be covertly usable in conversation and limited to 64 characters.",
+#                 },
+#                 {
+#                     "role": "user",
+#                     "content": f"Generate a phrase with obscurity level {obscurity} and silliness factor {silliness}.",
+#                 },
+#             ],
+#             temperature=0.9,
+#         )
 
-        print("OpenAI API Response:", response.choices[0].message.content)
-        return JsonResponse({"response_text": response.choices[0].message.content})
+#         print("OpenAI API Response:", response.choices[0].message.content)
+#         return JsonResponse({"response_text": response.choices[0].message.content})
 
-    except Exception as e:
-        traceback.print_exc()  # Print full traceback
-        return JsonResponse({"error": str(e)}, status=500)
+#     except Exception as e:
+#         traceback.print_exc()  # Print full traceback
+#         return JsonResponse({"error": str(e)}, status=500)
 
 
 def validate_sneak(request, game_id):
@@ -466,3 +466,34 @@ def generate_qr_code(url):
     img.save(img_io, "PNG")
     img_io.seek(0)
     return img_io
+
+
+@login_required
+def joingame2(request):
+    create_game_form = CreateGameForm()
+    join_game_form = JoinGameForm(request.POST or None)
+
+    storage = messages.get_messages(request)
+    for message in storage:
+        if "logged in" in message.message:
+            storage.used = True
+
+    if request.method == "POST":
+        if join_game_form.is_valid():
+            game_room_code = join_game_form.cleaned_data["game_room_code"]
+            try:
+                game = Game.objects.get(game_room_code=game_room_code)
+                return redirect("gameroom:joingame", game_id=game.id, slug=game.slug)
+            except Game.DoesNotExist:
+                messages.error(request, "Game with this code does not exist.")
+        else:
+            # Redirect to homepage if form is invalid
+            return redirect(
+                "homepage_url_name"
+            )  # Replace 'homepage_url_name' with the URL name of your homepage
+
+    return render(
+        request,
+        "start.html",
+        {"join_game": join_game_form, "create_game": create_game_form},
+    )

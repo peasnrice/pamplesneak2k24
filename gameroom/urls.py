@@ -6,8 +6,10 @@ app_name = "gameroom"
 
 urlpatterns = [
     # path('', views.pamplesneak, name='pamplesneak'),
+    path("start/", views.joingame2, name="joingame2"),
     path("pampleplay/", views.pampleplay, name="pampleplay"),
     path("pampleplay/create", views.creategame, name="creategame"),
+    # path("pampleplay/join", views.joingame2, name="joingame2"),
     path("pampleplay/<int:game_id>/<slug:slug>/stats", views.stats, name="stats"),
     path("pampleplay/<int:game_id>/<slug:slug>/", views.joingame, name="joingame"),
     path("sendword/<int:game_id>/", views.send_word, name="send_word"),

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.template.defaultfilters import slugify
+from django.utils.crypto import get_random_string
 from django.conf import settings
 
 
@@ -9,6 +10,7 @@ User = get_user_model()
 
 class Game(models.Model):
     game_name = models.CharField(max_length=32)
+    game_room_code = models.CharField(max_length=6, unique=True)
     slug = models.SlugField(default="Mr-slug-will-change-on-creation")
     number_of_players = models.IntegerField(default=1)
     word_bank_size = models.IntegerField(default=5)
@@ -19,9 +21,17 @@ class Game(models.Model):
     #     return PamplesneakInfo.objects.filter(current_game=self).count()
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.id and not self.game_room_code:
+            self.game_room_code = self._generate_unique_code()
             self.slug = slugify(self.game_name)
         super().save(*args, **kwargs)
+
+    def _generate_unique_code(self):
+        code = get_random_string(length=6).upper()
+        # Ensure the code is unique and regenerate if it's not
+        while Game.objects.filter(game_room_code=code).exists():
+            code = get_random_string(length=6).upper()
+        return code
 
     def __str__(self):
         return self.game_name

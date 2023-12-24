@@ -21,8 +21,9 @@ from pamplesneak import views as pamplesneak_views
 
 urlpatterns = [
     path("", pamplesneak_views.home, name="home"),
-    path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),
+    path("start/", pamplesneak_views.start, name="start"),
+    path("admin/", admin.site.urls),
+    path("accounts/", include("allauth.urls")),
     path("__reload__/", include("django_browser_reload.urls")),
-    path('gameroom/', include('gameroom.urls')), 
+    path("gameroom/", include("gameroom.urls")),
 ]

@@ -82,6 +82,7 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "pamplesneak.middleware.ClearMessagesMiddleware",
 ]
 
 ROOT_URLCONF = "pamplesneak.urls"
@@ -142,16 +143,10 @@ else:
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "OPTIONS": {
+            "min_length": 4,
+        },
     },
 ]
 

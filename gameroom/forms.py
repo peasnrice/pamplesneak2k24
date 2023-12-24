@@ -3,10 +3,36 @@ from django import forms
 from gameroom.models import Game
 
 
-class GameRoomForm(forms.ModelForm):
+class JoinGameForm(forms.Form):
+    game_room_code = forms.CharField(
+        max_length=6,
+        widget=forms.TextInput(
+            attrs={
+                "class": "shadow appearance-none border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline",
+                "placeholder": "Game Code",
+                "maxlength": "6",
+            }
+        ),
+    )
+
+    def clean_field(self):
+        data = self.cleaned_data["game_room_code"]
+        return data.upper()
+
+
+class CreateGameForm(forms.ModelForm):
     class Meta:
         model = Game
         fields = ["game_name"]
+        widgets = {
+            "game_name": forms.TextInput(
+                attrs={
+                    "class": "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
+                    "placeholder": "Game Name",
+                    "maxlength": "6",
+                }
+            ),
+        }
 
 
 class MessageSender(forms.Form):
