@@ -6,7 +6,7 @@
       <form action="{% url 'gameroom:send_word' game_id=game.id %}" method="POST" class="space-y-4">
           {% csrf_token %}
           {{ form.word }}
-          <span id="word_count" class="text-sm text-black-500">0/64</span>
+          <span id="word_count" class="text-sm text-black-500">0/128</span>
           {{ form.target }}
       </form>
   </div>

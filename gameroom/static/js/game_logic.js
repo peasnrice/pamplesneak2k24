@@ -42,7 +42,7 @@ $(document).ready(function () {
     // Character count for the 'word' field
     $('#id_word').on('input', function () {
         const currentLength = $(this).val().length;
-        $('#word_count').text(`${currentLength}/64`);
+        $('#word_count').text(`${currentLength}/128`);
     });
 
 
@@ -243,6 +243,8 @@ async function get_inspiration() {
             console.log(data.response_text);
 
             $('#id_word').val(data.response_text);
+            $('#id_word').trigger('input');
+
 
         } else {
             console.error(`HTTP error! status: ${response.status}`);

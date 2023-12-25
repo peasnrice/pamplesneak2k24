@@ -377,7 +377,12 @@ def get_inspiration(request):
         example_words = ExampleWord.objects.all()
         if example_words.exists():
             random_word = random.choice(example_words)
-            return JsonResponse({"response_text": random_word.word})
+            # Check if there's a note and append it
+            if random_word.note:
+                response_text = f"{random_word.word} - {random_word.note}"
+            else:
+                response_text = random_word.word
+            return JsonResponse({"response_text": response_text})
         else:
             return JsonResponse({"response_text": "No words available."})
     except Exception as e:
