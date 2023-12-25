@@ -36,9 +36,3 @@ def start(request):
 
 
 from allauth.account.views import LoginView
-
-
-class CustomLoginView(LoginView):
-    def form_invalid(self, form):
-        # Add your logic here. You can send messages or log events
-        return redirect("")

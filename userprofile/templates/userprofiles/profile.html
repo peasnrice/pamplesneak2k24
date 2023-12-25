@@ -1,0 +1,10 @@
+{% if user.is_authenticated %}
+    <h2>Games Signed Up By {{ user.username }}</h2>
+    <ul>
+        {% for game in games %}
+            <li>{{ game.game_name }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Please log in to view this page.</p>
+{% endif %}

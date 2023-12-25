@@ -5,7 +5,7 @@ from gameroom import views  # Import views from the current app
 app_name = "gameroom"
 
 urlpatterns = [
-    # path('', views.pamplesneak, name='pamplesneak'),
+    # path("", views.pamplesneak, name="pamplesneak"),
     path("start/", views.joingame2, name="joingame2"),
     path("pampleplay/", views.pampleplay, name="pampleplay"),
     path("pampleplay/create", views.creategame, name="creategame"),

@@ -16,8 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
 from pamplesneak import views as pamplesneak_views
+from userprofile.views import user_games
+
 
 urlpatterns = [
     path("", pamplesneak_views.home, name="home"),
@@ -26,4 +27,5 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("__reload__/", include("django_browser_reload.urls")),
     path("gameroom/", include("gameroom.urls")),
+    path("user/games/", user_games, name="user-games"),
 ]

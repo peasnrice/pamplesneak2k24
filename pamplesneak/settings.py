@@ -82,7 +82,6 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "pamplesneak.middleware.ClearMessagesMiddleware",
 ]
 
 ROOT_URLCONF = "pamplesneak.urls"

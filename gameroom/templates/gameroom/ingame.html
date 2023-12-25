@@ -9,39 +9,39 @@
 </script>
 {% endblock %}
 
-<div class="w-full bg-indigo-500">
-  {% block jumbotron %}
-  <!-- Flex container with responsive direction -->
-  <div class="flex flex-col md:flex-row justify-between items-center p-4">
-    
-    <!-- Left side: Game Info and Buttons, stacks on top on small screens -->
-    <div style="min-height: 150px;">
-      <h1 class="text-3xl font-bold">{{ game.game_name }}</h1>
-      <h2 class="text-2xl">Game Room Code: {{ game.game_room_code }}</h2>
-      <div class="my-4 space-x-2">
-          <a href="{% url 'gameroom:stats' game_id=game.id slug=game.slug %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block">
-            Game Stats
-          </a>
-          <button id="show_qr_code_button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-          Show Share Game Code
-        </button>
-        <button id="hide_qr_code_button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded hidden">
-          Hide Share Game Code
-        </button>
-      </div>
-    </div>
-
-    <!-- Right side: QR Code, moves below on small screens -->
-    <div class="mt-4 md:mt-0 md:ml-4">
-      <img src="{% url 'gameroom:qr_code' game_id=game.id slug=game.slug %}" alt="QR Code" id="qrCodeImage" style="height: 150px;" class="hidden">
-    </div>
+{% block jumbotron %}
+<!-- Flex container with responsive direction -->
+<div class="flex flex-col md:flex-row justify-between items-center p-4">
   
+  <!-- Left side: Game Info and Buttons, stacks on top on small screens -->
+  <div style="min-height: 150px;">
+    <h1 class="text-3xl font-bold">{{ game.game_name }}</h1>
+    <h2 class="text-2xl">Game Room Code: {{ game.game_room_code }}</h2>
+    <div class="my-4 space-x-2">
+        <a href="{% url 'gameroom:stats' game_id=game.id slug=game.slug %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block">
+          Game Stats
+        </a>
+        <button id="show_qr_code_button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+        Show Share Game Code
+      </button>
+      <button id="hide_qr_code_button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded hidden">
+        Hide Share Game Code
+      </button>
+    </div>
   </div>
-  {% endblock %}
+
+  <!-- Right side: QR Code, moves below on small screens -->
+  <div class="mt-4 md:mt-0 md:ml-4">
+    <img src="{% url 'gameroom:qr_code' game_id=game.id slug=game.slug %}" alt="QR Code" id="qrCodeImage" style="height: 150px;" class="hidden">
+  </div>
+
 </div>
+{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4">
+
+{% if player_count > 0 %}
+  <div class="container mx-auto px-4">
     {% if messages %}
         <div id="message-container" class="fixed top-0 left-1/2 transform -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-md text-center hidden">
             {% for message in messages %}
@@ -49,17 +49,24 @@
             {% endfor %}
         </div>
     {% endif %}
-</div>
-
-<div class="container mx-auto px-4">
-  <div class="my-4">
-    {% include "gameroom/playerword.html" %}
   </div>
 
+  <div class="container mx-auto px-4 py-4" style="background-color: #1E7B4F;">
+    <div class="my-4" >
+      {% include "gameroom/playerword.html" %}
+    </div>
+  </div>
 
-  <div class="my-4 text-center">
-    <h2> Send a word / Phrase to another player</h2>
+  <div class="container mx-auto px-4 py-4 text-center" style="background-color: #E7A13D;">
+    <p class="text-xl font-bold">Send a word/Phrase to another player</p>
     {% include "gameroom/messageform.html" %}
   </div>
-</div>
+
+{% else %}
+  <div class="container mx-auto px-4 text-center">
+    <p class="text-xl font-bold">Waiting for more players.</p>
+    <p class="text-xl font-bold">Invite the people around you!</p>
+  </div>
+{% endif %}
+
 {% endblock %}

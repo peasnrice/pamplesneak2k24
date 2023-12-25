@@ -35,20 +35,31 @@ class CreateGameForm(forms.ModelForm):
         }
 
 
+from django import forms
+
+
 class MessageSender(forms.Form):
-    word = forms.CharField(max_length=64)
+    word = forms.CharField(
+        max_length=64,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-input block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            }
+        ),
+        label="Word / Phrase",
+    )
+    target = forms.ChoiceField(
+        widget=forms.Select(
+            attrs={
+                "class": "form-select block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            }
+        )
+    )
     send_anonymously = forms.BooleanField(
         initial=False, widget=forms.HiddenInput(), required=False
     )
 
     def __init__(self, players, *args, **kwargs):
-        super(MessageSender, self).__init__(*args, **kwargs)
-        self.fields["target"] = forms.ChoiceField(
-            choices=[(id, name) for id, name in players.items()]
-        )
+        super().__init__(*args, **kwargs)
+        self.fields["target"].choices = [(id, name) for id, name in players.items()]
         self.order_fields(["word", "target", "send_anonymously"])
-
-        # Set 'send_anonymously' field to False by default
-        self.fields["send_anonymously"].initial = False
-
-        self.fields["word"].label = "Word / Phrase"
