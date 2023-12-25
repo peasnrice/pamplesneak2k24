@@ -69,6 +69,8 @@ INSTALLED_APPS = [
     "users",
     "gameroom",
     "pamplesneak",
+    "userprofile",
+    "userprofile.templatetags.custom_filters",
 ]
 
 MIDDLEWARE = [

@@ -13,6 +13,7 @@ urlpatterns = [
     path("pampleplay/<int:game_id>/<slug:slug>/stats", views.stats, name="stats"),
     path("pampleplay/<int:game_id>/<slug:slug>/", views.joingame, name="joingame"),
     path("sendword/<int:game_id>/", views.send_word, name="send_word"),
+    path("ajax/inspiration/", views.get_inspiration, name="get_inspiration"),
     path(
         "ajax/refresh_word/<int:game_id>/<int:player_id>/",
         views.refresh_word,

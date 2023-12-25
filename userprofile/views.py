@@ -10,6 +10,6 @@ def user_games(request):
         # Retrieve the corresponding Game instances
         signed_up_games = [player.game for player in player_instances]
 
-        return render(request, "userprofiles/profile.html", {"games": signed_up_games})
+        return render(request, "userprofile/profile.html", {"games": signed_up_games})
     else:
         return render(request, "start.html")

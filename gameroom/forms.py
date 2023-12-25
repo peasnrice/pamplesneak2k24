@@ -35,15 +35,13 @@ class CreateGameForm(forms.ModelForm):
         }
 
 
-from django import forms
-
-
 class MessageSender(forms.Form):
     word = forms.CharField(
         max_length=64,
-        widget=forms.TextInput(
+        widget=forms.Textarea(  # Changed from TextInput to Textarea
             attrs={
-                "class": "form-input block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                "class": "form-input block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50",
+                "rows": 3,  # You can specify the number of rows
             }
         ),
         label="Word / Phrase",

@@ -352,39 +352,19 @@ def word_skip(request, word_id, game_id, player_id):
     return JsonResponse({"html": render})
 
 
-# @csrf_exempt
-# @require_http_methods(["POST"])
-# def openai_request(request):
-#     try:
-#         data = json.loads(request.body)
-#         obscurity = data.get("obscurity")
-#         silliness = data.get("silliness")
-
-#         random_element = random.choice(
-#             ["", "Be creative.", "Think outside the box.", "Surprise me."]
-#         )
-
-#         response = client.chat.completions.create(
-#             model="gpt-3.5-turbo",
-#             messages=[
-#                 {
-#                     "role": "system",
-#                     "content": f"You are a generator for words or phrases, with adjustable levels of obscurity (0-10) and silliness (0-10). {random_element} Your output should be covertly usable in conversation and limited to 64 characters.",
-#                 },
-#                 {
-#                     "role": "user",
-#                     "content": f"Generate a phrase with obscurity level {obscurity} and silliness factor {silliness}.",
-#                 },
-#             ],
-#             temperature=0.9,
-#         )
-
-#         print("OpenAI API Response:", response.choices[0].message.content)
-#         return JsonResponse({"response_text": response.choices[0].message.content})
-
-#     except Exception as e:
-#         traceback.print_exc()  # Print full traceback
-#         return JsonResponse({"error": str(e)}, status=500)
+@csrf_exempt
+@require_http_methods(["POST"])
+def get_inspiration(request):
+    try:
+        example_words = ExampleWord.objects.all()
+        if example_words.exists():
+            random_word = random.choice(example_words)
+            return JsonResponse({"response_text": random_word.word})
+        else:
+            return JsonResponse({"response_text": "No words available."})
+    except Exception as e:
+        traceback.print_exc()  # Print full traceback
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 def validate_sneak(request, game_id):

@@ -39,6 +39,13 @@ $(document).ready(function () {
         word_fail(wordId, gameId, playerId);
     });
 
+    // Character count for the 'word' field
+    $('#id_word').on('input', function () {
+        const currentLength = $(this).val().length;
+        $('#word_count').text(`${currentLength}/64`);
+    });
+
+
     if (!refreshIntervalId) {
         refreshIntervalId = setInterval(refresh_word.bind(null, gameId, playerId), 10000);
     }
@@ -52,8 +59,8 @@ $(document).ready(function () {
         messageContainer.fadeIn().delay(5000).fadeOut();
     }
 
-    $('#random_word_button').click(randomize_word); // Bind the function to the button click
-    $('#random_player_button').click(randomize_player); // Bind the function to the button click
+    // $('#random_word_button').click(randomize_word); // Bind the function to the button click
+    // $('#random_player_button').click(randomize_player); // Bind the function to the button click
 
     $(document).on('click', '.validate_sneak', function () {
         var sneakId = $(this).closest('div[id]').attr('id');
@@ -221,23 +228,14 @@ async function refresh_word(gameId, playerId) {
     }
 }
 
-async function randomize_word() {
-
-    var obscurity = $('#obscurity_level').val();
-    var silliness = $('#silliness_level').val();
-
+async function get_inspiration() {
     try {
-        const response = await fetch('/gameroom/ajax/openai_request/', {
+        const response = await fetch('/gameroom/ajax/inspiration/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'obscurity': obscurity,
-                'silliness': silliness,
-                'max_tokens': 64
-            })
+            }
         });
 
         if (response.ok) {
@@ -250,7 +248,7 @@ async function randomize_word() {
             console.error(`HTTP error! status: ${response.status}`);
         }
     } catch (error) {
-        console.error('Error in randomize_word:', error);
+        console.error('Error in retrieving inspiration:', error);
     }
 }
 
