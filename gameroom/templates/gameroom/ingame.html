@@ -10,24 +10,26 @@
 {% endblock %}
 
 {% block jumbotron %}
-<!-- Flex container with responsive direction -->
-<div class="flex flex-col md:flex-row justify-between items-center p-4">
-  
-  <!-- Left side: Game Info and Buttons, stacks on top on small screens -->
-  <div style="min-height: 150px;">
-    <h1 class="text-3xl font-bold">{{ game.game_name }}</h1>
-    <h2 class="text-2xl">Game Room Code: {{ game.game_room_code }}</h2>
-    <div class="my-4 space-x-2">
-        <a href="{% url 'gameroom:stats' game_id=game.id slug=game.slug %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block">
-          Game Stats
-        </a>
-        <button id="show_qr_code_button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-        Show Share Game Code
-      </button>
-      <button id="hide_qr_code_button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded hidden">
-        Hide Share Game Code
-      </button>
-    </div>
+  <!-- Flex container with responsive direction -->
+  <div class="flex flex-col md:flex-row justify-between items-center p-4">
+    
+    <!-- Left side: Game Info and Buttons, stacks on top on small screens -->
+    <div class="min-h-[150px]">
+      <h1 class="text-3xl font-bold">{{ game.game_name }}</h1>
+      <h2 class="text-2xl">Game Room Code: {{ game.game_room_code }}</h2>
+      
+      <!-- Flex container with responsive design -->
+      <div class="flex flex-col sm:flex-row my-4 space-y-2 sm:space-y-0 sm:space-x-2">
+          <a href="{% url 'gameroom:stats' game_id=game.id slug=game.slug %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block flex-grow text-center">
+              Game Stats
+          </a>
+          <button id="show_qr_code_button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex-grow">
+              Show Share Game Code
+          </button>
+          <button id="hide_qr_code_button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded hidden flex-grow">
+              Hide Share Game Code
+          </button>
+      </div>
   </div>
 
   <!-- Right side: QR Code, moves below on small screens -->
