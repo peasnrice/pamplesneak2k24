@@ -62,10 +62,28 @@ def creategame(request):
             save_game = form.save(commit=False)
             save_game.active = True
             save_game.save()
-            # Redirect directly to the play view
-            return redirect("gameroom:pampleplay")
+
+            # Auto-join the game creator as a player
+            user = request.user
+            player, created = Player.objects.get_or_create(
+                game=save_game, user=user, defaults={"name": user.username}
+            )
+
+            # Assign the game to the user's profile (if you have such a mechanism)
+            user_profile, _ = UserProfile.objects.get_or_create(user=user)
+            user_profile.current_game = save_game
+            user_profile.current_player = player
+            user_profile.save()
+
+            # Optionally, perform any other logic you need for a new player joining
+
+            # Redirect to the game view (update with your actual view's name and parameters)
+            return redirect(
+                "gameroom:joingame", game_id=save_game.id, slug=save_game.slug
+            )
     else:
         form = CreateGameForm()
+
     return render(request, "gameroom/create.html", {"form": form})
 
 

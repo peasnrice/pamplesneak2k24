@@ -32,5 +32,5 @@ EXPOSE 8000
 
 CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "pamplesneak.wsgi"]
 
-RUN python3 wordbank_converter.py     
-RUN python3 manage.py loaddata data/examplewords.json
+# RUN python3 wordbank_converter.py     
+# RUN python3 manage.py loaddata data/examplewords.json
