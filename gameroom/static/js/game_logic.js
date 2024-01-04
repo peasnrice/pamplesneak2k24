@@ -378,8 +378,6 @@ function initializeCards() {
         lastShownCardIndex = cards_length - 1;
     }
 
-
-
     showCard(lastShownCardIndex);
 }
 
