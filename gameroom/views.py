@@ -115,16 +115,19 @@ def joingame(request, game_id, slug):
     players_dict = {p.id: p.name for p in players_query}
     form = MessageSender(players_dict)
 
-    game_words = (
+    # Query to get the words associated with the player and game, not completed
+    player_words = (
         Word.objects.filter(game=game_id)
         .filter(send_to=player)
         .filter(completed=False)
         .order_by("created")
     )
-    if not game_words:
-        player_word = None
-    else:
-        player_word = game_words[0]
+
+    # Get the count of words
+    number_of_words = player_words.count()
+
+    # Select the first word or None if the list is empty
+    current_player_word = player_words[0] if player_words else None
 
     context = {
         "form": form,
@@ -133,7 +136,9 @@ def joingame(request, game_id, slug):
         "player": player,
         "players": all_players_query.order_by("-succesful_sneaks"),
         "player_count": players_query.count(),
-        "player_word": player_word,
+        "number_of_words": number_of_words,
+        "player_word": current_player_word,
+        "player_words": player_words,
         "range1_10": range(1, 11),
     }
 
@@ -218,35 +223,33 @@ def send_word(request, game_id):
 
 
 def refresh_word(request, game_id, player_id):
-    game_words = Word.objects.filter(game=game_id, send_to=player_id).order_by(
-        "created"
-    )
-    player_word = game_words[0].word if game_words else ""
-
     game = get_object_or_404(Game, pk=game_id)
     player = get_object_or_404(Player, pk=player_id)
 
-    game_words = (
+    # Query to get the words associated with the player and game, not completed
+    player_words = (
         Word.objects.filter(game=game_id)
         .filter(send_to=player)
         .filter(completed=False)
         .order_by("created")
     )
-    number_of_words = game_words.count
-    if not game_words:
-        player_word = None
-    else:
-        player_word = game_words[0]
+
+    # Get the count of words
+    number_of_words = player_words.count()
+
+    # Select the first word or None if the list is empty
+    current_player_word = player_words[0] if player_words else None
 
     context = {
-        "player_word": player_word,
+        "player_word": current_player_word,  # The current word to display
+        "player_words": player_words,  # List of all words for the player
         "game": game,
         "player": player,
         "number_of_words": number_of_words,
         "range1_10": range(1, 11),
     }
 
-    # You can now directly use game_word for the context
+    # Render the template with the context
     render = render_to_string("gameroom/playerword.html", context, request=request)
 
     return JsonResponse({"html": render})
@@ -267,20 +270,19 @@ def word_success(request, word_id, game_id, player_id):
 
     game = get_object_or_404(Game, pk=game_id)
 
-    game_words = (
+    player_words = (
         Word.objects.filter(game=game_id)
         .filter(send_to=player)
         .filter(completed=False)
         .order_by("created")
     )
-    number_of_words = game_words.count
-    if not game_words:
-        player_word = None
-    else:
-        player_word = game_words[0]
+    number_of_words = player_words.count()
+
+    current_player_word = player_words[0] if player_words else None
 
     context = {
-        "player_word": player_word,
+        "player_word": current_player_word,  # The current word to display
+        "player_words": player_words,  # List of all words for the player
         "game": game,
         "player": player,
         "number_of_words": number_of_words,
@@ -306,20 +308,19 @@ def word_fail(request, word_id, game_id, player_id):
 
     game = get_object_or_404(Game, pk=game_id)
 
-    game_words = (
+    player_words = (
         Word.objects.filter(game=game_id)
         .filter(send_to=player)
         .filter(completed=False)
         .order_by("created")
     )
-    number_of_words = game_words.count
-    if not game_words:
-        player_word = None
-    else:
-        player_word = game_words[0]
+    number_of_words = player_words.count()
+
+    current_player_word = player_words[0] if player_words else None
 
     context = {
-        "player_word": player_word,
+        "player_word": current_player_word,  # The current word to display
+        "player_words": player_words,  # List of all words for the player
         "game": game,
         "player": player,
         "number_of_words": number_of_words,
@@ -328,6 +329,7 @@ def word_fail(request, word_id, game_id, player_id):
 
     # You can now directly use game_word for the context
     render = render_to_string("gameroom/playerword.html", context, request=request)
+
     return JsonResponse({"html": render})
 
 
@@ -345,20 +347,19 @@ def word_skip(request, word_id, game_id, player_id):
 
     game = get_object_or_404(Game, pk=game_id)
 
-    game_words = (
+    player_words = (
         Word.objects.filter(game=game_id)
         .filter(send_to=player)
         .filter(completed=False)
         .order_by("created")
     )
-    number_of_words = game_words.count
-    if not game_words:
-        player_word = None
-    else:
-        player_word = game_words[0]
+    number_of_words = player_words.count()
+
+    current_player_word = player_words[0] if player_words else None
 
     context = {
-        "player_word": player_word,
+        "player_word": current_player_word,  # The current word to display
+        "player_words": player_words,  # List of all words for the player
         "game": game,
         "player": player,
         "number_of_words": number_of_words,
@@ -367,6 +368,7 @@ def word_skip(request, word_id, game_id, player_id):
 
     # You can now directly use game_word for the context
     render = render_to_string("gameroom/playerword.html", context, request=request)
+
     return JsonResponse({"html": render})
 
 

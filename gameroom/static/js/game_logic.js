@@ -2,37 +2,40 @@ var refreshIntervalId = null;
 
 $(document).ready(function () {
 
-    $('.game_word').hide();
-    $('#show_button').hide();
-    $('#hide_button').show();
+    var currentCardIndex = parseInt(localStorage.getItem('lastShownCardIndex'), 10) || 0;
+    var cards = $('.carousel-container .carousel-card');
+    var cards_length = cards.length;
 
-    $('#player_word').on('click', '#show_button', function () {
-        $('.game_word').show();
-        $('#show_button').hide();
-        $('#hide_button').show();
-    });
+    if (cards_length <= currentCardIndex) {
+        currentCardIndex = cards_length - 1;
+    }
 
-    $('#player_word').on('click', '#hide_button', function () {
-        $('.game_word').hide();
-        $('#show_button').show();
-        $('#hide_button').hide();
-    });
+    if (currentCardIndex < 0) {
+        currentCardIndex = 0;
+        localStorage.setItem('lastShownCardIndex', 0);
+    }
 
-    $('#player_word').on('click', '#succeeded_button', function () {
+    $('#show_all_button').hide();
+    $('#hide_all_button').show();
+
+    attachButtonHandlers();
+
+
+    $('#player_word').on('click', '.succeeded_button', function () {
         const wordId = $(this).data('word-id');
         const gameId = $(this).data('game-id');
         const playerId = $(this).data('player-id');
         word_success(wordId, gameId, playerId);
     });
 
-    $('#player_word').on('click', '#failed_button', function () {
+    $('#player_word').on('click', '.failed_button', function () {
         const wordId = $(this).data('word-id');
         const gameId = $(this).data('game-id');
         const playerId = $(this).data('player-id');
         word_fail(wordId, gameId, playerId);
     });
 
-    $('#player_word').on('click', '#skipped_button', function () {
+    $('#player_word').on('click', '.skipped_button', function () {
         const wordId = $(this).data('word-id');
         const gameId = $(this).data('game-id');
         const playerId = $(this).data('player-id');
@@ -45,12 +48,32 @@ $(document).ready(function () {
         $('#word_count').text(`${currentLength}/128`);
     });
 
+    // Delegated event handling for dynamic content
+    $('#player_word').on('click', '#next_button', function () {
+        if (currentCardIndex < cards.length - 1) {
+            currentCardIndex += 1;
+            showCard(currentCardIndex);
+        } else {
+            currentCardIndex = 0;
+            showCard(currentCardIndex);
+        }
+    });
+
+    $('#player_word').on('click', '#prev_button', function () {
+        if (currentCardIndex > 0) {
+            currentCardIndex -= 1;
+            showCard(currentCardIndex);
+        } else {
+            currentCardIndex = cards.length - 1;
+            showCard(currentCardIndex);
+        }
+    });
+
 
     if (!refreshIntervalId) {
         refreshIntervalId = setInterval(refresh_word.bind(null, gameId, playerId), 10000);
     }
     refresh_word(gameId, playerId);  // Initial call to refresh word
-
 
     // Message pop-up logic
     var messageContainer = $('#message-container');
@@ -70,18 +93,6 @@ $(document).ready(function () {
     $(document).on('click', '.reject_sneak', function () {
         var sneakId = $(this).closest('div[id]').attr('id');
         reject_sneak(sneakId);
-    });
-
-    $(document).on('click', '#show_button', function () {
-        $('.game_word').show();
-        $('#show_button').hide();
-        $('#hide_button').show();
-    });
-
-    $(document).on('click', '#hide_button', function () {
-        $('.game_word').hide();
-        $('#show_button').show();
-        $('#hide_button').hide();
     });
 
     // Show QR Code
@@ -128,7 +139,6 @@ async function word_success(wordId, gameId, playerId) {
         if (response.ok) {
             const data = await response.json();
             $('#player_word').html(data.html);
-            $('.game_word').hide();
         } else {
             console.error(`HTTP error! status: ${response.status}`);
         }
@@ -151,7 +161,6 @@ async function word_fail(wordId, gameId, playerId) {
         if (response.ok) {
             const data = await response.json();
             $('#player_word').html(data.html);
-            $('.game_word').hide();
         } else {
             console.error(`HTTP error! status: ${response.status}`);
         }
@@ -174,7 +183,6 @@ async function word_skip(wordId, gameId, playerId) {
         if (response.ok) {
             const data = await response.json();
             $('#player_word').html(data.html);
-            $('.game_word').hide();
         } else {
             console.error(`HTTP error! status: ${response.status}`);
         }
@@ -185,11 +193,13 @@ async function word_skip(wordId, gameId, playerId) {
 }
 
 async function refresh_word(gameId, playerId) {
+    var currentCardIndex = parseInt(localStorage.getItem('lastShownCardIndex'), 10) || 0;
+    var cards = $('.carousel-container .carousel-card');
+    var cards_length = cards.length;
 
-    const wordCurrentlyNotPresent = $('#player_word').find('#word_not_present').length > 0;
-    const gameWordDisplayStyle = $('.game_word').css('display');
-    console.log(gameWordDisplayStyle)
-
+    if (cards_length <= currentCardIndex) {
+        currentCardIndex = cards_length - 1;
+    }
 
     try {
         const response = await fetch(`/gameroom/ajax/refresh_word/${gameId}/${playerId}/`, {
@@ -203,21 +213,8 @@ async function refresh_word(gameId, playerId) {
         if (response.ok) {
             const data = await response.json();
             $('#player_word').html(data.html);
-            $('.game_word').css('display', gameWordDisplayStyle);
-            if (gameWordDisplayStyle == 'none') {
-                $('#show_button').show();
-                $('#hide_button').hide();
-            } else {
-                $('#show_button').hide();
-                $('#hide_button').show();
-            }
-
-            const wordNowPresent = $('#player_word').find('#word_present').length > 0;
-            if (wordCurrentlyNotPresent && wordNowPresent) {
-                $('.game_word').hide();
-                $('#show_button').show();
-                $('#hide_button').hide();
-            }
+            attachButtonHandlers();
+            initializeCards();
 
         } else {
             console.error(`HTTP error! status: ${response.status}`);
@@ -240,7 +237,6 @@ async function get_inspiration() {
 
         if (response.ok) {
             const data = await response.json();
-            console.log(data.response_text);
 
             $('#id_word').val(data.response_text);
             $('#id_word').trigger('input');
@@ -260,7 +256,6 @@ async function randomize_player() {
 
     // Calculate a random index
     var randomIndex = Math.floor(Math.random() * playerSelect.options.length);
-    console.log(randomIndex);
 
     // Set the selected index
     playerSelect.selectedIndex = randomIndex;
@@ -316,4 +311,68 @@ async function reject_sneak(sneakId) {
 function updateVoteCounts(sneakId, validationsCount, rejectionsCount) {
     var container = $('#' + sneakId);
     container.find('.votes').html('Validations: <strong>' + validationsCount + ' 🌟</strong>, Rejections: <strong>' + rejectionsCount + ' 💔</strong>');
+}
+
+function initializeCards() {
+    var cards = $('.carousel-container .carousel-card');
+    var cards_length = cards.length;
+
+    // Hide all cards initially
+    $('.carousel-card').hide();
+
+    var lastShownCardIndex = parseInt(localStorage.getItem('lastShownCardIndex'), 10) || 0;
+
+    if (lastShownCardIndex >= cards_length) {
+        lastShownCardIndex = cards_length - 1;
+    }
+
+    var lastShowCardContents = localStorage.getItem('lastShowCardContents') || "false";
+
+    if (lastShowCardContents == "true") {
+        // $('.carousel-card .toggle-content').show();
+        $('.carousel-card .game_word').removeClass('blur-sm pointer-events-none');
+        $('#show_all_button').hide();
+        $('#hide_all_button').show();
+    } else {
+        // $('.carousel-card .toggle-content').hide();
+        $('.carousel-card .game_word').addClass('blur-sm pointer-events-none');
+        $('#show_all_button').show();
+        $('#hide_all_button').hide();
+    }
+
+    if (lastShownCardIndex >= cards_length) {
+        lastShownCardIndex = cards_length - 1;
+    }
+
+    showCard(lastShownCardIndex);
+}
+
+function showCard(index) {
+    var cards = $('.carousel-container .carousel-card');
+
+    // Hide all cards
+    cards.hide();
+
+    // Show the selected card
+    var selectedCard = $(cards[index]);
+    selectedCard.show();
+
+    // Store the current index in local storage
+    localStorage.setItem('lastShownCardIndex', index.toString());
+}
+
+function attachButtonHandlers() {
+    $('#show_all_button').off('click').on('click', function () {
+        $('.carousel-card .game_word').removeClass('blur-sm pointer-events-none');
+        $('#show_all_button').hide();
+        $('#hide_all_button').show();
+        localStorage.setItem('lastShowCardContents', 'true');
+    });
+
+    $('#hide_all_button').off('click').on('click', function () {
+        $('.carousel-card .game_word').addClass('blur-sm pointer-events-none');
+        $('#show_all_button').show();
+        $('#hide_all_button').hide();
+        localStorage.setItem('lastShowCardContents', 'false');
+    });
 }

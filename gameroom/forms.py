@@ -37,7 +37,7 @@ class CreateGameForm(forms.ModelForm):
 
 class MessageSender(forms.Form):
     word = forms.CharField(
-        max_length=64,
+        max_length=128,
         widget=forms.Textarea(  # Changed from TextInput to Textarea
             attrs={
                 "class": "form-input block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50",
