@@ -50,6 +50,18 @@ $(document).ready(function () {
 
     // Delegated event handling for dynamic content
     $('#player_word').on('click', '#next_button', function () {
+        cards = $('.carousel-container .carousel-card');
+        cards_length = cards.length;
+
+        if (cards_length <= currentCardIndex) {
+            currentCardIndex = cards_length - 1;
+        }
+
+        if (currentCardIndex < 0) {
+            currentCardIndex = 0;
+            localStorage.setItem('lastShownCardIndex', 0);
+        }
+
         if (currentCardIndex < cards.length - 1) {
             currentCardIndex += 1;
             showCard(currentCardIndex);
@@ -60,6 +72,18 @@ $(document).ready(function () {
     });
 
     $('#player_word').on('click', '#prev_button', function () {
+        cards = $('.carousel-container .carousel-card');
+        cards_length = cards.length;
+
+        if (cards_length <= currentCardIndex) {
+            currentCardIndex = cards_length - 1;
+        }
+
+        if (currentCardIndex < 0) {
+            currentCardIndex = 0;
+            localStorage.setItem('lastShownCardIndex', 0);
+        }
+
         if (currentCardIndex > 0) {
             currentCardIndex -= 1;
             showCard(currentCardIndex);
@@ -139,6 +163,8 @@ async function word_success(wordId, gameId, playerId) {
         if (response.ok) {
             const data = await response.json();
             $('#player_word').html(data.html);
+            attachButtonHandlers();
+            initializeCards();
         } else {
             console.error(`HTTP error! status: ${response.status}`);
         }
@@ -161,6 +187,8 @@ async function word_fail(wordId, gameId, playerId) {
         if (response.ok) {
             const data = await response.json();
             $('#player_word').html(data.html);
+            attachButtonHandlers();
+            initializeCards();
         } else {
             console.error(`HTTP error! status: ${response.status}`);
         }
@@ -183,6 +211,8 @@ async function word_skip(wordId, gameId, playerId) {
         if (response.ok) {
             const data = await response.json();
             $('#player_word').html(data.html);
+            attachButtonHandlers();
+            initializeCards();
         } else {
             console.error(`HTTP error! status: ${response.status}`);
         }
@@ -318,12 +348,16 @@ function initializeCards() {
     var cards_length = cards.length;
 
     // Hide all cards initially
-    $('.carousel-card').hide();
+    // $('.carousel-card').hide();
 
     var lastShownCardIndex = parseInt(localStorage.getItem('lastShownCardIndex'), 10) || 0;
 
     if (lastShownCardIndex >= cards_length) {
         lastShownCardIndex = cards_length - 1;
+    }
+
+    if (lastShownCardIndex < 0) {
+        lastShownCardIndex = 0;
     }
 
     var lastShowCardContents = localStorage.getItem('lastShowCardContents') || "false";
@@ -344,6 +378,8 @@ function initializeCards() {
         lastShownCardIndex = cards_length - 1;
     }
 
+
+
     showCard(lastShownCardIndex);
 }
 
@@ -352,7 +388,7 @@ function showCard(index) {
 
     // Hide all cards
     cards.hide();
-
+    console.log(index);
     // Show the selected card
     var selectedCard = $(cards[index]);
     selectedCard.show();
