@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.template.defaultfilters import slugify
 from django.utils.crypto import get_random_string
+from datetime import timedelta
 from django.conf import settings
 
 
@@ -17,8 +18,11 @@ class Game(models.Model):
     active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
 
-    # def getCurrentPlayers(self):
-    #     return PamplesneakInfo.objects.filter(current_game=self).count()
+    number_of_rounds = models.IntegerField(
+        default=1, choices=[(i, i) for i in range(1, 13)]
+    )
+
+    current_round = models.IntegerField(default=1)
 
     def save(self, *args, **kwargs):
         if not self.id and not self.game_room_code:
@@ -35,6 +39,21 @@ class Game(models.Model):
 
     def __str__(self):
         return self.game_name
+
+
+class Round(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="rounds")
+    round_number = models.IntegerField()
+    sneaks_per_round = models.IntegerField(default=3)
+    allow_additional_sneaks = models.BooleanField(default=False)
+    time_between_rounds = models.DurationField(default=timedelta(minutes=3))
+    duration = models.DurationField(default=timedelta(minutes=5))
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Round {self.round_number} of {self.game.game_name}"
 
 
 class Player(models.Model):

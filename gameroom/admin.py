@@ -1,10 +1,16 @@
 from django.contrib import admin
-from .models import Game, Player, Word, Vote, ExampleWord
+from .models import Game, Round, Player, Word, Vote, ExampleWord
 
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
     list_display = ["game_name", "number_of_players", "active", "created"]
+    # Add more admin options as needed
+
+
+@admin.register(Round)
+class RoundAdmin(admin.ModelAdmin):
+    list_display = ["game", "round_number", "duration"]
     # Add more admin options as needed
 
 

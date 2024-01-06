@@ -1,9 +1,11 @@
+from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
-from gameroom.models import Game, Player, Word, Vote, ExampleWord
+from gameroom.models import Game, Round, Player, Word, Vote, ExampleWord
 from users.models import CustomUser, UserProfile
-from gameroom.forms import MessageSender, CreateGameForm, JoinGameForm
+from gameroom.forms import MessageSender, CreateGameForm, RoundForm, JoinGameForm
+from django.forms import formset_factory
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.contrib import messages
@@ -56,12 +58,22 @@ class GameInfo:
 
 @login_required
 def creategame(request):
+    RoundFormSet = formset_factory(RoundForm, extra=0)
+
     if request.method == "POST":
         form = CreateGameForm(request.POST)
-        if form.is_valid():
+        round_formset = RoundFormSet(request.POST)
+
+        if form.is_valid() and round_formset.is_valid():
             save_game = form.save(commit=False)
             save_game.active = True
             save_game.save()
+
+            # Saving each round
+            for round_form in round_formset:
+                round_instance = round_form.save(commit=False)
+                round_instance.game = save_game
+                round_instance.save()
 
             # Auto-join the game creator as a player
             user = request.user
@@ -69,22 +81,23 @@ def creategame(request):
                 game=save_game, user=user, defaults={"name": user.username}
             )
 
-            # Assign the game to the user's profile (if you have such a mechanism)
+            # Assign the game to the user's profile
             user_profile, _ = UserProfile.objects.get_or_create(user=user)
             user_profile.current_game = save_game
             user_profile.current_player = player
             user_profile.save()
 
-            # Optionally, perform any other logic you need for a new player joining
-
-            # Redirect to the game view (update with your actual view's name and parameters)
+            # Redirect to the game view
             return redirect(
                 "gameroom:joingame", game_id=save_game.id, slug=save_game.slug
             )
     else:
         form = CreateGameForm()
+        round_formset = RoundFormSet()
 
-    return render(request, "gameroom/create.html", {"form": form})
+    return render(
+        request, "gameroom/create.html", {"form": form, "round_formset": round_formset}
+    )
 
 
 @login_required
@@ -475,28 +488,56 @@ def generate_qr_code(url):
 
 @login_required
 def joingame2(request):
-    create_game_form = CreateGameForm()
-    join_game_form = JoinGameForm(request.POST or None)
-
-    storage = messages.get_messages(request)
-    for message in storage:
-        if "logged in" in message.message:
-            storage.used = True
+    create_game_form = (
+        CreateGameForm(request.POST or None)
+        if request.method == "POST" and "create_game" in request.POST
+        else CreateGameForm()
+    )
+    join_game_form = (
+        JoinGameForm(request.POST or None)
+        if request.method == "POST" and "join_game" in request.POST
+        else JoinGameForm()
+    )
 
     if request.method == "POST":
-        if join_game_form.is_valid():
+        # Handling game creation
+        if "create_game" in request.POST and create_game_form.is_valid():
+            new_game = create_game_form.save()
+
+            # Convert values to timedelta objects
+            round_duration = timedelta(
+                minutes=int(create_game_form.cleaned_data["round_duration"])
+            )
+            time_between_rounds = timedelta(
+                minutes=int(create_game_form.cleaned_data["time_between_rounds"])
+            )
+
+            for i in range(1, new_game.number_of_rounds + 1):
+                Round.objects.create(
+                    game=new_game,
+                    round_number=i,
+                    duration=round_duration,
+                    sneaks_per_round=create_game_form.cleaned_data["sneaks_per_round"],
+                    allow_additional_sneaks=create_game_form.cleaned_data[
+                        "allow_additional_sneaks"
+                    ],
+                    time_between_rounds=time_between_rounds,
+                )
+            # Redirect to the game room or another appropriate page after creating the game
+            return redirect(
+                "gameroom:joingame", game_id=new_game.id, slug=new_game.slug
+            )
+
+        # Handling joining a game
+        if "join_game" in request.POST and join_game_form.is_valid():
             game_room_code = join_game_form.cleaned_data["game_room_code"]
             try:
                 game = Game.objects.get(game_room_code=game_room_code)
                 return redirect("gameroom:joingame", game_id=game.id, slug=game.slug)
             except Game.DoesNotExist:
                 messages.error(request, "Game with this code does not exist.")
-        else:
-            # Redirect to homepage if form is invalid
-            return redirect(
-                "homepage_url_name"
-            )  # Replace 'homepage_url_name' with the URL name of your homepage
 
+    # Handling non-POST requests or invalid form submissions
     return render(
         request,
         "start.html",

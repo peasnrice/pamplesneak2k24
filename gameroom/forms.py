@@ -1,6 +1,6 @@
 # forms.py
 from django import forms
-from gameroom.models import Game
+from gameroom.models import Game, Round
 
 
 class JoinGameForm(forms.Form):
@@ -21,18 +21,92 @@ class JoinGameForm(forms.Form):
 
 
 class CreateGameForm(forms.ModelForm):
+    NUMBER_OF_ROUNDS_CHOICES = [(i, str(i)) for i in range(1, 7)] + [
+        ("open", "Open Ended Game")
+    ]
+    ROUND_DURATION_CHOICES = [
+        (5, "5 minutes"),
+        (10, "10 minutes"),
+        (15, "15 minutes"),
+        (30, "30 minutes"),
+        (45, "45 minutes"),
+        (60, "60 minutes"),
+    ]
+
+    SNEAK_CREATION_DURATION_CHOICES = [
+        (5, "5 minutes"),
+        (4, "4 minutes"),
+        (3, "3 minutes"),
+        (2, "2 minutes"),
+        (1, "1 minute"),
+    ]
+
+    SNEAK_COUNT_CHOICES = [(i, str(i)) for i in range(1, 6)] + [
+        ("unlimited", "no limits")
+    ]
+
+    number_of_rounds = forms.ChoiceField(choices=NUMBER_OF_ROUNDS_CHOICES, initial=3)
+    round_duration = forms.ChoiceField(
+        choices=ROUND_DURATION_CHOICES, required=False, initial=15
+    )
+    time_between_rounds = forms.ChoiceField(
+        choices=SNEAK_CREATION_DURATION_CHOICES, required=False, initial=3
+    )
+    sneaks_per_round = forms.ChoiceField(choices=SNEAK_COUNT_CHOICES, initial="3")
+    allow_additional_sneaks = forms.BooleanField(required=False, initial=True)
+
     class Meta:
         model = Game
-        fields = ["game_name"]
+        fields = [
+            "game_name",
+            "number_of_rounds",
+            "round_duration",
+            "sneaks_per_round",
+            "allow_additional_sneaks",
+            "time_between_rounds",
+        ]
         widgets = {
             "game_name": forms.TextInput(
                 attrs={
                     "class": "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
                     "placeholder": "Game Name",
-                    "maxlength": "6",
+                    "maxlength": "32",
+                }
+            ),
+            "number_of_rounds": forms.Select(
+                attrs={
+                    "class": "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
+                }
+            ),
+            "round_duration": forms.Select(
+                attrs={
+                    "class": "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
+                }
+            ),
+            "sneaks_per_round": forms.Select(
+                attrs={
+                    "class": "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
+                }
+            ),
+            "time_between_rounds": forms.Select(
+                attrs={
+                    "class": "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
+                }
+            ),
+            "allow_additional_sneaks": forms.Select(
+                attrs={
+                    "class": "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
                 }
             ),
         }
+
+
+class RoundForm(forms.ModelForm):
+    duration = forms.TimeField(widget=forms.TimeInput(attrs={"type": "time"}))
+
+    class Meta:
+        model = Round
+        fields = ["duration"]
 
 
 class MessageSender(forms.Form):
@@ -41,7 +115,7 @@ class MessageSender(forms.Form):
         widget=forms.Textarea(  # Changed from TextInput to Textarea
             attrs={
                 "class": "form-input block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50",
-                "rows": 3,  # You can specify the number of rows
+                "rows": 3,  # specify the number of rows
             }
         ),
         label="Word / Phrase",
