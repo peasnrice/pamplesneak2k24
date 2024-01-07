@@ -1,0 +1,92 @@
+{% extends "default_base.html" %}
+
+{% load static %}
+
+{% block head %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="{% static 'js/create_form.js' %}"></script>
+{% endblock %}
+
+{% block jumbotron %}
+<div class="flex flex-col h-screen">
+
+  <!-- JOIN Section -->
+  <div class="w-full flex-grow" style="background-color: #1E7B4F; display: flex; align-items: center; justify-content: center;">
+    <div class="text-center">
+      <h1 class="text-4xl font-bold text-white">Join a Game</h1>
+      <p class="text-lg text-white">Enter your game room code below.</p>
+      <form action="{% url 'gameroom:joingame2' %}" method="post" class="flex justify-center items-center">
+        {% csrf_token %}
+        <div class="flex">
+          {{ join_game.game_room_code }}
+          <button type="submit" name="join_game" class="bg-yellow-400 text-black font-bold py-2 px-4 rounded hover:bg-yellow-500 ml-4">
+            JOIN
+          </button>
+        </div>
+      </form>
+      {% if messages %}
+        <div class="mt-4">
+          {% for message in messages %}
+            {% if 'logged in' not in message %}
+                <div class="{{ message.tags }}">{{ message }}</div>
+            {% endif %}
+              <div class="{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- HOST Section -->
+  <div class="w-full flex-grow" style="background-color: #E7A13D; display: flex; align-items: center; justify-content: center;">
+    <div class="text-center">
+      <h1 class="text-4xl font-bold text-white">Host a Game</h1>
+      <p class="text-lg text-white">What's the occasion?</p>
+      <form action="{% url 'gameroom:joingame2' %}" method="POST" class="flex justify-center items-center">
+        {% csrf_token %}
+        <!-- Manually render form fields -->
+        <div class="flex flex-col items-center">
+          <div class="mb-4">
+            {{ create_game.game_name }}
+          </div>
+          <div class="mb-4">
+            <p class="text-lg text-white">Number of rounds</p>
+            {{ create_game.number_of_rounds }}
+          </div>
+          <div class="mb-4">
+            <p id="round-duration-description" class="text-lg text-white">Round duration</p>
+            {{ create_game.round_duration }}
+          </div>
+          <div class="mb-4">
+            <p id="id_sneaks_per_round" class="text-lg text-white">Sneaks per Round</p>
+            {{ create_game.sneaks_per_round }}
+          </div>
+          <div class="mb-4">
+            <p id="id_allow_additional_sneaks" class="text-lg text-white">Allow Additional Sneaks</p>
+              {{ create_game.allow_additional_sneaks }}
+          </div>
+          <div class="mb-4">
+            <p id="id_time_between_rounds" class="text-lg text-white">Time Between Rounds for Sneak Creation</p>
+            {{ create_game.time_between_rounds }}
+          </div>
+          <!-- Game Time Calculator Display -->
+          <div class="mb-4">
+            <p id="game-time-calculator" class="text-lg text-white">
+                Estimated Total Game Time: <span id="total-game-time">0</span>
+                <br>
+                Estimated Conclusion Time: <span id="game-end-time"></span>
+            </p>
+          </div>
+          <button type="submit" name="create_game" class="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">
+            HOST
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Additional content can go here -->
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "default_base.html" %}
+{% load static %}
+
+{% block head %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+  var gameId = "{{ game.id }}";
+  var playerId = "{{ player.id }}";
+</script>
+{% endblock %}
+
+{% block jumbotron %}
+  <!-- Flex container with responsive direction -->
+  <div class="flex flex-col md:flex-row justify-between items-center p-4">
+    
+    <!-- Left side: Game Info and Buttons, stacks on top on small screens -->
+    <div class="min-h-[150px]">
+      <h1 class="text-3xl font-bold">{{ game.game_name }}</h1>
+      <h2 class="text-2xl">Game Room Code: {{ game.game_room_code }}</h2>
+      
+      <!-- Flex container with responsive design -->
+      <div class="flex flex-col sm:flex-row my-4 space-y-2 sm:space-y-0 sm:space-x-2">
+          <a href="{% url 'gameroom:stats' game_id=game.id slug=game.slug %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block flex-grow text-center">
+              Game Stats
+          </a>
+          <button id="show_qr_code_button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex-grow">
+              Show Share Game Code
+          </button>
+          <button id="hide_qr_code_button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded hidden flex-grow">
+              Hide Share Game Code
+          </button>
+      </div>
+  </div>
+
+  <!-- Right side: QR Code, moves below on small screens -->
+  <div class="mt-4 md:mt-0 md:ml-4">
+    <img src="{% url 'gameroom:qr_code' game_id=game.id slug=game.slug %}" alt="QR Code" id="qrCodeImage" style="height: 150px;" class="hidden">
+  </div>
+
+  {% if not game.ended %}
+  <div id="game_info">
+    <span id="currentRound">Round 1</span>
+    <span id="gameState">State: create</span>
+    <span id="countdown">00:00:00</span>
+  </div>
+  {% else %}
+  <div id="end_game">
+    <span>Game has ended</span>
+  </div>
+  {% endif %}
+
+
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if player_count > 0 %}
+  <div class="container mx-auto px-4">
+    {% if messages %}
+        <div id="message-container" class="fixed top-0 left-1/2 transform -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-md text-center hidden">
+            {% for message in messages %}
+                <div class="{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+  </div>
+
+  <div class="container mx-auto px-4 py-4" style="background-color: #1E7B4F;">
+    <div class="my-4" >
+      {% include "gameroom/playerword.html" %}
+    </div>
+  </div>
+
+  <div class="container mx-auto px-4 py-4 text-center" style="background-color: #E7A13D;">
+    <p class="text-xl font-bold">Send a word/Phrase to another player</p>
+    {% include "gameroom/messageform.html" %}
+  </div>
+
+{% else %}
+  <div class="container mx-auto px-4 text-center">
+    <p class="text-xl font-bold">Waiting for more players.</p>
+    <p class="text-xl font-bold">Invite the people around you!</p>
+  </div>
+{% endif %}
+
+{% block scripts %}
+<script src="{% static 'js/game_logic.js' %}"></script>
+<script src="{% static 'js/lobby_socket.js' %}"></script>
+{% endblock %}
+
+{% endblock %}
