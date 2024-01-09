@@ -113,6 +113,7 @@ def end_round(game_id):
         round_transition_state.apply_async((game_id,))
     else:
         game.ended = True
+        game.current_round = game.number_of_rounds
         game.save()
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(

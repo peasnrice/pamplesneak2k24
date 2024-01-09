@@ -1,6 +1,9 @@
 var lobbySocket = new WebSocket('ws://' + window.location.host + '/ws/gameroom/' + gameId + '/');
 let countdownTimer;
 
+$(document).ready(function () {
+    updateRoundStateDisplay(roundState);
+})
 
 lobbySocket.onmessage = function (e) {
     var data = JSON.parse(e.data);
@@ -15,10 +18,17 @@ lobbySocket.onmessage = function (e) {
         window.location.reload();
     }
 
+    if (data.type === 'round.transition') {
+        window.location.reload();
+    }
+
     if (data.type === 'round.transition' || data.type === 'round.create' || data.type === 'round.play') {
         document.getElementById('currentRound').textContent = `Round ${data.round_number}`;
         document.getElementById('gameState').textContent = `State: ${data.round_state}`;
         startCountdown(data.countdown_time);
+
+        // Handling round states
+        updateRoundStateDisplay(data.round_state);
     }
 
     if (data.type === 'game.end') {
@@ -73,4 +83,24 @@ function startCountdown(durationInSeconds) {
         milliseconds -= 100; // Decrement milliseconds by 100
 
     }, 100); // Update every 100 milliseconds
+}
+
+function updateRoundStateDisplay(roundState) {
+
+    // Hide all states initially
+    $('#transitionState').hide();
+    $('#playState').hide();
+    $('#createState').hide();
+    console.log(roundState);
+    // Show the relevant state
+    if (roundState === 'Transition') {
+        console.log(roundState);
+        $('#transitionState').show();
+    } else if (roundState === 'Play') {
+        console.log(roundState);
+        $('#playState').show();
+    } else if (roundState === 'Create') {
+        console.log(roundState);
+        $('#createState').show();
+    }
 }

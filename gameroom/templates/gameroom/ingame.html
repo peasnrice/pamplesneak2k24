@@ -7,6 +7,8 @@
   var gameId = "{{ game.id }}";
   var playerId = "{{ player.id }}";
   var words_submitted_this_round = parseInt("{{ words_submitted_this_round }}", 10);
+  var roundState = "{{ current_round.state }}";
+  var current_round = "{{ game.current_round }}";
 </script>
 <script src="{% static 'js/game_logic.js' %}"></script>
 <script src="{% static 'js/lobby_socket.js' %}"></script>
@@ -69,13 +71,19 @@
     {% endif %}
   </div>
 
-  <div class="container mx-auto px-4 py-4" style="background-color: #1E7B4F;">
-    <div class="my-4" >
+  <div id="transitionState" class="container mx-auto px-4 py-4 text-center" style="background-color: #1E7B4F;">
+    <div class="my-4">
+      <h1 class="text-xl font-bold">The round is about to start!!!</h1>
+    </div>
+  </div>
+  
+  <div id="playState" class="container mx-auto px-4 py-4" style="background-color: #1E7B4F;">
+    <div class="my-4">
       {% include "gameroom/playerword.html" %}
     </div>
   </div>
-
-  <div class="container mx-auto px-4 py-4 text-center" style="background-color: #E7A13D;">
+  
+  <div id="createState" class="container mx-auto px-4 py-4 text-center" style="background-color: #E7A13D;">
     {% include "gameroom/messageform.html" %}
   </div>
 
