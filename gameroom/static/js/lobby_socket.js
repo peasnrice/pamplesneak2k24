@@ -15,9 +15,9 @@ lobbySocket.onmessage = function (e) {
         window.location.reload();
     }
 
-    if (data.type === 'round.start' || data.type === 'round.end') {
+    if (data.type === 'round.transition' || data.type === 'round.create' || data.type === 'round.play') {
         document.getElementById('currentRound').textContent = `Round ${data.round_number}`;
-        document.getElementById('gameState').textContent = `State: ${data.game_state}`;
+        document.getElementById('gameState').textContent = `State: ${data.round_state}`;
         startCountdown(data.countdown_time);
     }
 

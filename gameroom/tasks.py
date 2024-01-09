@@ -21,49 +21,86 @@ def send_game_start_message(game_id):
 
 
 @shared_task
-def start_round(game_id, round_number):
+def round_transition_state(game_id):
+    # Set the round to the transition state
     game = Game.objects.get(id=game_id)
     current_round = game.current_round
     round = Round.objects.get(game=game, round_number=current_round)
-    countdown_time = round.duration.total_seconds()
-    game.state = "create"
-    game.save()
+    round.state = "Transition"
+    round.save()
+    countdown_time = round.transition_state_duration.total_seconds()
+
+    # Notify clients of the transition state
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"gameroom_{game_id}",
+        {
+            "type": "round.transition",
+            "round_state": round.state,
+            "round_number": current_round,
+            "countdown_time": countdown_time,
+        },
+    )
+
+    # Schedule the start_round task to run after the transition period
+    start_create_state.apply_async((game_id,), countdown=countdown_time)
+
+
+@shared_task
+def start_create_state(game_id):
+    game = Game.objects.get(id=game_id)
+    current_round = game.current_round
+    round = Round.objects.get(game=game, round_number=current_round)
+    countdown_time = round.create_state_duration.total_seconds()
+    # Change round state from 'transition' to 'create'
+    round.state = "Create"
+    round.save()
 
     # Notify all clients to show the round screen
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f"gameroom_{game_id}",
         {
-            "type": "round.start",
-            "round_number": round_number,
+            "type": "round.create",
+            "round_state": round.state,
+            "round_number": current_round,
             "countdown_time": countdown_time,
         },
     )
-
-    end_round.apply_async(
-        (game_id, round_number), countdown=round.duration.total_seconds()
-    )
+    start_play_state.apply_async((game_id,), countdown=countdown_time)
 
 
 @shared_task
-def end_round(game_id, round_number):
+def start_play_state(game_id):
     game = Game.objects.get(id=game_id)
     current_round = game.current_round
     round = Round.objects.get(game=game, round_number=current_round)
-    countdown_time = round.duration.total_seconds()
-    game.state = "play"
-    game.save()
+    countdown_time = round.play_state_duration.total_seconds()
+    round.state = "Play"
+    round.save()
 
-    # Notify all clients to show the set screen
+    # Notify all clients to show the round screen
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f"gameroom_{game_id}",
         {
-            "type": "round.end",
-            "round_number": round_number,
+            "type": "round.play",
+            "round_state": round.state,
+            "round_number": current_round,
             "countdown_time": countdown_time,
         },
     )
+
+    end_round.apply_async((game_id,), countdown=countdown_time)
+
+
+@shared_task
+def end_round(game_id):
+    game = Game.objects.get(id=game_id)
+    current_round = game.current_round
+    round = Round.objects.get(game=game, round_number=current_round)
+    round.state = "end"
+    round.save()
 
     # Increase current round
     game.current_round += 1
@@ -73,18 +110,15 @@ def end_round(game_id, round_number):
 
     # If more rounds remain, start the next round
     if game.current_round <= game.number_of_rounds:
-        start_round.apply_async(
-            (game_id, game.current_round),
-            countdown=round.time_between_rounds.total_seconds(),
-        )
+        round_transition_state.apply_async((game_id,))
     else:
         game.ended = True
         game.save()
+        channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f"gameroom_{game_id}",
             {
-                "type": "round.end",
-                "round_number": round_number,
-                "countdown_time": countdown_time,
+                "type": "game.end",
+                "round_number": current_round,
             },
         )

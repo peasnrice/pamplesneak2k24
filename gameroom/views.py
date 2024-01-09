@@ -18,7 +18,7 @@ from django.contrib import messages
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from .tasks import send_game_start_message, start_round
+from .tasks import send_game_start_message, round_transition_state
 import random
 import json
 import traceback
@@ -515,23 +515,23 @@ def joingame2(request):
             new_game.save()
 
             # Convert values to timedelta objects
-            round_duration = timedelta(
-                minutes=int(create_game_form.cleaned_data["round_duration"])
+            create_state_duration = timedelta(
+                minutes=int(create_game_form.cleaned_data["create_state_duration"])
             )
-            time_between_rounds = timedelta(
-                minutes=int(create_game_form.cleaned_data["time_between_rounds"])
+            play_state_duration = timedelta(
+                minutes=int(create_game_form.cleaned_data["play_state_duration"])
             )
 
             for i in range(1, new_game.number_of_rounds + 1):
                 Round.objects.create(
                     game=new_game,
                     round_number=i,
-                    duration=round_duration,
+                    play_state_duration=play_state_duration,
                     sneaks_per_round=create_game_form.cleaned_data["sneaks_per_round"],
                     allow_additional_sneaks=create_game_form.cleaned_data[
                         "allow_additional_sneaks"
                     ],
-                    time_between_rounds=time_between_rounds,
+                    create_state_duration=create_state_duration,
                 )
             # Redirect to the game room or another appropriate page after creating the game
             return redirect("gameroom:lobby", game_id=new_game.id, slug=new_game.slug)
@@ -588,7 +588,7 @@ def game_lobby(request, game_id, slug):
             game.active = True
             game.save()
             send_game_start_message.delay(game_id)
-            # start_round.delay(game_id, 1)
+            round_transition_state.delay(game_id)
             return redirect("gameroom:joingame", game_id=game_id, slug=game.slug)
     else:
         start_game_form = StartGameForm()

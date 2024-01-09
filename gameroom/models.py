@@ -31,12 +31,6 @@ class Game(models.Model):
 
     current_round = models.IntegerField(default=1)
 
-    STATE_CHOICES = (
-        ("create", "create"),
-        ("play", "play"),
-    )
-    state = models.CharField(max_length=10, choices=STATE_CHOICES, default="creation")
-
     def save(self, *args, **kwargs):
         if not self.id and not self.game_room_code:
             self.game_room_code = self._generate_unique_code()
@@ -59,9 +53,17 @@ class Round(models.Model):
     round_number = models.IntegerField()
     sneaks_per_round = models.IntegerField(default=3)
     allow_additional_sneaks = models.BooleanField(default=False)
-    time_between_rounds = models.DurationField(default=timedelta(minutes=3))
-    duration = models.DurationField(default=timedelta(minutes=5))
+    transition_state_duration = models.DurationField(default=timedelta(seconds=10))
+    create_state_duration = models.DurationField(default=timedelta(minutes=3))
+    play_state_duration = models.DurationField(default=timedelta(minutes=5))
     ended = models.BooleanField(default=False)
+
+    STATE_CHOICES = (
+        ("transition", "transition"),
+        ("create", "create"),
+        ("play", "play"),
+    )
+    state = models.CharField(max_length=10, choices=STATE_CHOICES, default="transition")
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

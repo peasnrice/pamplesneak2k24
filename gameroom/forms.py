@@ -46,10 +46,10 @@ class CreateGameForm(forms.ModelForm):
     ]
 
     number_of_rounds = forms.ChoiceField(choices=NUMBER_OF_ROUNDS_CHOICES, initial=3)
-    round_duration = forms.ChoiceField(
+    play_state_duration = forms.ChoiceField(
         choices=ROUND_DURATION_CHOICES, required=False, initial=15
     )
-    time_between_rounds = forms.ChoiceField(
+    create_state_duration = forms.ChoiceField(
         choices=SNEAK_CREATION_DURATION_CHOICES, required=False, initial=3
     )
     sneaks_per_round = forms.ChoiceField(choices=SNEAK_COUNT_CHOICES, initial="3")
@@ -60,10 +60,10 @@ class CreateGameForm(forms.ModelForm):
         fields = [
             "game_name",
             "number_of_rounds",
-            "round_duration",
+            "play_state_duration",
             "sneaks_per_round",
             "allow_additional_sneaks",
-            "time_between_rounds",
+            "create_state_duration",
         ]
         widgets = {
             "game_name": forms.TextInput(
@@ -78,7 +78,7 @@ class CreateGameForm(forms.ModelForm):
                     "class": "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
                 }
             ),
-            "round_duration": forms.Select(
+            "play_state_duration": forms.Select(
                 attrs={
                     "class": "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
                 }
@@ -88,7 +88,7 @@ class CreateGameForm(forms.ModelForm):
                     "class": "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
                 }
             ),
-            "time_between_rounds": forms.Select(
+            "create_state_duration": forms.Select(
                 attrs={
                     "class": "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
                 }

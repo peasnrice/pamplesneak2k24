@@ -10,7 +10,7 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(Round)
 class RoundAdmin(admin.ModelAdmin):
-    list_display = ["game", "round_number", "duration"]
+    list_display = ["game", "round_number", "state"]
     # Add more admin options as needed
 
 

@@ -61,22 +61,32 @@ class GameRoomConsumer(AsyncJsonWebsocketConsumer):
         # Handle the game start message
         await self.send(event["text"])
 
-    async def round_start(self, event):
+    async def round_transition(self, event):
         await self.send_json(
             {
-                "type": "round.start",
+                "type": "round.transition",
                 "round_number": event["round_number"],
-                "game_state": "create",
+                "round_state": event["round_state"],
                 "countdown_time": event["countdown_time"],
             }
         )
 
-    async def round_end(self, event):
+    async def round_create(self, event):
         await self.send_json(
             {
-                "type": "round.end",
+                "type": "round.create",
                 "round_number": event["round_number"],
-                "game_state": "play",
+                "round_state": event["round_state"],
+                "countdown_time": event["countdown_time"],
+            }
+        )
+
+    async def round_play(self, event):
+        await self.send_json(
+            {
+                "type": "round.play",
+                "round_number": event["round_number"],
+                "round_state": event["round_state"],
                 "countdown_time": event["countdown_time"],
             }
         )
