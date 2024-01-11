@@ -44,7 +44,11 @@ function updatePlayerList(players) {
 
     players.forEach(function (player) {
         var li = document.createElement('li');
-        li.textContent = player;
+        var text = player.name;
+        if (player.is_host) {
+            text += " (host)";
+        }
+        li.textContent = text;
         playerList.appendChild(li);
     });
 }

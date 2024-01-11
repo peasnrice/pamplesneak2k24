@@ -16,6 +16,10 @@ console_command = "/code/manage.py shell"
   PORT = "8000"
   DEBUG = false
 
+[processes]  # <-- Updated!
+  app = "daphne -b 0.0.0.0 -p 8000 pamplesneak.asgi:application"
+  worker = "celery -A pamplesneak worker -l info"
+
 [http_service]
   internal_port = 8000
   force_https = true

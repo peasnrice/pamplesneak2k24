@@ -111,6 +111,7 @@ def creategame(request):
 @never_cache
 def joingame(request, game_id, slug):
     game = get_object_or_404(Game, pk=game_id)
+
     current_round = Round.objects.get(game=game, round_number=game.current_round)
     user = request.user
 
@@ -571,6 +572,12 @@ def joingame2(request):
                     ],
                     create_state_duration=create_state_duration,
                 )
+
+            player, created = Player.objects.get_or_create(
+                game=new_game,
+                user=request.user,
+                defaults={"name": request.user.username},
+            )
             # Redirect to the game room or another appropriate page after creating the game
             return redirect("gameroom:lobby", game_id=new_game.id, slug=new_game.slug)
 
@@ -613,12 +620,16 @@ def joingame2(request):
 @login_required
 def game_lobby(request, game_id, slug):
     game = get_object_or_404(Game, id=game_id, slug=slug)
+    user = request.user
+    player, created = Player.objects.get_or_create(
+        game=game, user=user, defaults={"name": user.username}
+    )
 
     if game.active == True:
         return redirect("gameroom:joingame", game_id=game_id, slug=game.slug)
 
     players = Player.objects.filter(game=game)
-    user_is_host = game.host == request.user
+    user_is_host = game.host == user
 
     if request.method == "POST":
         start_game_form = StartGameForm(request.POST)
@@ -639,5 +650,6 @@ def game_lobby(request, game_id, slug):
             "players": players,
             "user_is_host": user_is_host,
             "start_game_form": start_game_form,
+            "player": player,
         },
     )

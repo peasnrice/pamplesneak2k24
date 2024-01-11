@@ -30,7 +30,9 @@ RUN python3 manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "pamplesneak.wsgi"]
+# CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "pamplesneak.wsgi"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "pamplesneak.asgi:application"]
+
 
 # RUN python3 wordbank_converter.py     
 # RUN python3 manage.py loaddata data/examplewords.json

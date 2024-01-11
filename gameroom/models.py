@@ -22,7 +22,7 @@ class Game(models.Model):
     )
     number_of_players = models.IntegerField(default=1)
     word_bank_size = models.IntegerField(default=5)
-    active = models.BooleanField(default=True)
+    active = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     ended = models.BooleanField(default=False)
 
@@ -69,6 +69,8 @@ class Round(models.Model):
     state = models.CharField(max_length=10, choices=STATE_CHOICES, default="transition")
 
     def get_remaining_time(self):
+        if self.state_start_time is None:
+            return None
         time_elapsed = timezone.now() - self.state_start_time
         if self.state == "transition":
             total_duration = self.transition_state_duration
