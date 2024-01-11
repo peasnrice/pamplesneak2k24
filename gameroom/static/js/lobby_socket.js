@@ -1,8 +1,12 @@
 var lobbySocket = new WebSocket('ws://' + window.location.host + '/ws/gameroom/' + gameId + '/');
-let countdownTimer;
+var timerInterval; // Declare this at the top level
 
 $(document).ready(function () {
+    console.log(roundState)
     updateRoundStateDisplay(roundState);
+    console.log("CONSOLE");
+    console.log(countdownTimer);
+    startCountdown(countdownTimer);
 })
 
 lobbySocket.onmessage = function (e) {
@@ -23,6 +27,7 @@ lobbySocket.onmessage = function (e) {
     }
 
     if (data.type === 'round.transition' || data.type === 'round.create' || data.type === 'round.play') {
+        console.log(`Time ${data.countdown_time}`);
         document.getElementById('currentRound').textContent = `Round ${data.round_number}`;
         document.getElementById('gameState').textContent = `State: ${data.round_state}`;
         startCountdown(data.countdown_time);
@@ -58,13 +63,18 @@ lobbySocket.onerror = function (error) {
 };
 
 function startCountdown(durationInSeconds) {
-    clearInterval(countdownTimer);
-    let totalMilliseconds = durationInSeconds * 1000;  // Convert seconds to milliseconds
-    let milliseconds = totalMilliseconds;
+    clearInterval(timerInterval); // Clear any existing interval to prevent multiple timers
 
-    countdownTimer = setInterval(function () {
+    let totalMilliseconds = durationInSeconds * 1000; // Convert seconds to milliseconds
+    let milliseconds = totalMilliseconds;
+    console.log(
+        "function"
+    )
+    console.log(durationInSeconds);
+
+    timerInterval = setInterval(function () {
         if (milliseconds <= 0) {
-            clearInterval(countdownTimer);
+            clearInterval(timerInterval); // Stop the timer when it reaches zero
             document.getElementById('countdown').textContent = "00:00:00";
             return;
         }
@@ -75,32 +85,37 @@ function startCountdown(durationInSeconds) {
 
         // Format the time and update the countdown display
         let formattedMilliseconds = millisecondsDisplay > 0 ? "." + millisecondsDisplay.toString().replace(/0+$/, '') : "";
+
         document.getElementById('countdown').textContent =
             minutes.toString().padStart(2, '0') + ":" +
             seconds.toString().padStart(2, '0') +
             formattedMilliseconds;
 
-        milliseconds -= 100; // Decrement milliseconds by 100
+        milliseconds -= 100; // Decrement milliseconds by 100 for each interval
 
     }, 100); // Update every 100 milliseconds
 }
 
 function updateRoundStateDisplay(roundState) {
 
+    document.getElementById('currentRound').textContent = `Round ` + current_round;
+    document.getElementById('gameState').textContent = `State: ` + roundState;
     // Hide all states initially
     $('#transitionState').hide();
     $('#playState').hide();
     $('#createState').hide();
     console.log(roundState);
     // Show the relevant state
-    if (roundState === 'Transition') {
+    if (roundState === 'transition') {
         console.log(roundState);
         $('#transitionState').show();
-    } else if (roundState === 'Play') {
+    } else if (roundState === 'play') {
         console.log(roundState);
         $('#playState').show();
-    } else if (roundState === 'Create') {
+    } else if (roundState === 'create') {
         console.log(roundState);
         $('#createState').show();
     }
 }
+
+

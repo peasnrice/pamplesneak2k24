@@ -3,6 +3,7 @@ from celery import shared_task
 from .models import Game, Round
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from django.utils import timezone
 import json
 
 
@@ -26,7 +27,8 @@ def round_transition_state(game_id):
     game = Game.objects.get(id=game_id)
     current_round = game.current_round
     round = Round.objects.get(game=game, round_number=current_round)
-    round.state = "Transition"
+    round.state = "transition"
+    round.state_start_time = timezone.now()
     round.save()
     countdown_time = round.transition_state_duration.total_seconds()
 
@@ -53,7 +55,8 @@ def start_create_state(game_id):
     round = Round.objects.get(game=game, round_number=current_round)
     countdown_time = round.create_state_duration.total_seconds()
     # Change round state from 'transition' to 'create'
-    round.state = "Create"
+    round.state = "create"
+    round.state_start_time = timezone.now()
     round.save()
 
     # Notify all clients to show the round screen
@@ -76,7 +79,8 @@ def start_play_state(game_id):
     current_round = game.current_round
     round = Round.objects.get(game=game, round_number=current_round)
     countdown_time = round.play_state_duration.total_seconds()
-    round.state = "Play"
+    round.state = "play"
+    round.state_start_time = timezone.now()
     round.save()
 
     # Notify all clients to show the round screen

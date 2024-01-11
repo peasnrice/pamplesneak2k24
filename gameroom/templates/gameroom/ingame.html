@@ -7,8 +7,13 @@
   var gameId = "{{ game.id }}";
   var playerId = "{{ player.id }}";
   var words_submitted_this_round = parseInt("{{ words_submitted_this_round }}", 10);
-  var roundState = "{{ current_round.state }}";
   var current_round = "{{ game.current_round }}";
+  var roundState = "{{ current_round.state }}";
+  var countdownTimer = parseInt("{{ remaining_time|default:'0' }}", 10);
+  console.log("start_remaining_time");
+  console.log(countdownTimer);
+  console.log("end_remaining_time");
+
 </script>
 <script src="{% static 'js/game_logic.js' %}"></script>
 <script src="{% static 'js/lobby_socket.js' %}"></script>
@@ -44,9 +49,9 @@
 
   {% if not game.ended %}
   <div id="game_info">
-    <span id="currentRound">Round 1</span>
-    <span id="gameState">State: create</span>
-    <span id="countdown">00:00:00</span>
+    <span id="currentRound"></span>
+    <span id="gameState"></span>
+    <span id="countdown"></span>
   </div>
   {% else %}
   <div id="end_game">
@@ -71,19 +76,19 @@
     {% endif %}
   </div>
 
-  <div id="transitionState" class="container mx-auto px-4 py-4 text-center" style="background-color: #1E7B4F;">
+  <div id="transitionState" class="container mx-auto px-4 py-4 text-center hidden" style="background-color: #1E7B4F;">
     <div class="my-4">
       <h1 class="text-xl font-bold">The round is about to start!!!</h1>
     </div>
   </div>
   
-  <div id="playState" class="container mx-auto px-4 py-4" style="background-color: #1E7B4F;">
+  <div id="playState" class="container mx-auto px-4 py-4 hidden" style="background-color: #1E7B4F;">
     <div class="my-4">
       {% include "gameroom/playerword.html" %}
     </div>
   </div>
   
-  <div id="createState" class="container mx-auto px-4 py-4 text-center" style="background-color: #E7A13D;">
+  <div id="createState" class="container mx-auto px-4 py-4 text-center hidden" style="background-color: #E7A13D;">
     {% include "gameroom/messageform.html" %}
   </div>
 

@@ -156,6 +156,14 @@ def joingame(request, game_id, slug):
     # Select the first word or None if the list is empty
     current_player_word = player_words[0] if player_words else None
 
+    remaining_time = current_round.get_remaining_time()
+    print(current_round)
+    print(current_round.round_number)
+    print("remaining time")
+    print(current_round.state)
+    print(current_round.state_start_time)
+    print(remaining_time)
+
     context = {
         "form": form,
         "word_bank_size": game.word_bank_size,
@@ -170,6 +178,7 @@ def joingame(request, game_id, slug):
         "current_round": current_round,
         "can_submit_more": can_submit_more,
         "words_submitted_this_round": words_submitted_this_round,
+        "remaining_time": remaining_time,
     }
 
     return render(request, "gameroom/ingame.html", context)
@@ -208,6 +217,7 @@ def stats(request, game_id, slug):
         "player": player,
         "game": game,
         "current_round": current_round,
+        "remaining_time": current_round.get_remaining_time(),
     }
 
     return render(request, "gameroom/ingamestats.html", context)
@@ -263,6 +273,7 @@ def send_word(request, game_id, round_id):
         "game": game,
         "can_submit_more": can_submit_more,
         "words_submitted_this_round": words_submitted_this_round,
+        "remaining_time": current_round.get_remaining_time(),
     }
 
     return render(request, "gameroom/ingame.html", context)

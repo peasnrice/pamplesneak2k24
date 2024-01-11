@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.template.defaultfilters import slugify
 from django.utils.crypto import get_random_string
 from datetime import timedelta
+from django.utils import timezone
 from django.conf import settings
 
 
@@ -53,6 +54,7 @@ class Round(models.Model):
     round_number = models.IntegerField()
     sneaks_per_round = models.IntegerField(default=3)
     allow_additional_sneaks = models.BooleanField(default=False)
+    state_start_time = models.DateTimeField(null=True, blank=True)
     transition_state_duration = models.DurationField(default=timedelta(seconds=10))
     create_state_duration = models.DurationField(default=timedelta(minutes=3))
     play_state_duration = models.DurationField(default=timedelta(minutes=5))
@@ -62,8 +64,29 @@ class Round(models.Model):
         ("transition", "transition"),
         ("create", "create"),
         ("play", "play"),
+        ("end", "end"),
     )
     state = models.CharField(max_length=10, choices=STATE_CHOICES, default="transition")
+
+    def get_remaining_time(self):
+        time_elapsed = timezone.now() - self.state_start_time
+        if self.state == "transition":
+            total_duration = self.transition_state_duration
+        elif self.state == "create":
+            total_duration = self.create_state_duration
+        elif self.state == "play":
+            total_duration = self.play_state_duration
+        else:
+            return None  # Handle other states or errors
+
+        if time_elapsed > total_duration:
+            remaining_time = timedelta(seconds=0)
+        else:
+            remaining_time = total_duration - time_elapsed
+
+        print(remaining_time)
+        print(max(remaining_time.total_seconds(), 0))
+        return max(remaining_time.total_seconds(), 0)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
