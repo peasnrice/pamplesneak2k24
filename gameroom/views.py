@@ -132,6 +132,9 @@ def joingame(request, game_id, slug):
     game.number_of_players = Player.objects.filter(game=game).count()
     game.save()
 
+    if game.active == False:
+        return redirect("gameroom:lobby", game_id=game_id, slug=game.slug)
+
     all_players_query = Player.objects.filter(game=game)
     players_query = Player.objects.filter(game=game).exclude(id=player.id)
     players_dict = {p.id: p.name for p in players_query}

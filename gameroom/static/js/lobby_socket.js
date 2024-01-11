@@ -1,4 +1,4 @@
-var lobbySocket = new WebSocket('ws://' + window.location.host + '/ws/gameroom/' + gameId + '/');
+var lobbySocket = new WebSocket('wss://' + window.location.host + '/ws/gameroom/' + gameId + '/');
 var timerInterval; // Declare this at the top level
 
 $(document).ready(function () {
