@@ -179,6 +179,7 @@ def joingame(request, game_id, slug):
         "can_submit_more": can_submit_more,
         "words_submitted_this_round": words_submitted_this_round,
         "remaining_time": remaining_time,
+        "sneaks_range": range(1, current_round.sneaks_per_round + 1),
     }
 
     return render(request, "gameroom/ingame.html", context)

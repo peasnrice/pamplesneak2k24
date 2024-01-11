@@ -1,8 +1,8 @@
 {% if can_submit_more %}
 <div class="sneak-progress-container flex justify-center space-x-4 my-4">
-    <div class="sneak-indicator {% if words_submitted_this_round >= 1 %}bg-green{% endif %}">1</div>
-    <div class="sneak-indicator {% if words_submitted_this_round >= 2 %}bg-green{% endif %}">2</div>
-    <div class="sneak-indicator {% if words_submitted_this_round >= 3 %}bg-green{% endif %}">3</div>       
+    {% for i in sneaks_range %}
+        <div class="sneak-indicator {% if words_submitted_this_round >= i %}bg-green{% else %}bg-gray{% endif %}">{{ i }}</div>
+    {% endfor %}
 </div>
 <p class="text-xl font-bold">Send a word/Phrase to another player</p>
 <div id="messageform" class="flex flex-col items-center justify-center">

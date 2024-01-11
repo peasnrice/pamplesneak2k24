@@ -132,9 +132,7 @@ $(document).ready(function () {
         $('#hide_qr_code_button').hide();
     });
 
-    console.log(words_submitted_this_round);
     updateSneakIndicator(words_submitted_this_round);
-    console.log(words_submitted_this_round);
 
 });
 
@@ -390,7 +388,6 @@ function showCard(index) {
 
     // Hide all cards
     cards.hide();
-    console.log(index);
     // Show the selected card
     var selectedCard = $(cards[index]);
     selectedCard.show();

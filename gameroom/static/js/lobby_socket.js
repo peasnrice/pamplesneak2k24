@@ -2,10 +2,7 @@ var lobbySocket = new WebSocket('ws://' + window.location.host + '/ws/gameroom/'
 var timerInterval; // Declare this at the top level
 
 $(document).ready(function () {
-    console.log(roundState)
     updateRoundStateDisplay(roundState);
-    console.log("CONSOLE");
-    console.log(countdownTimer);
     startCountdown(countdownTimer);
 })
 
@@ -18,7 +15,6 @@ lobbySocket.onmessage = function (e) {
 
     if (data.type === 'game.start') {
         // Redirect or refresh the page
-        console.log("message received");
         window.location.reload();
     }
 
@@ -27,8 +23,7 @@ lobbySocket.onmessage = function (e) {
     }
 
     if (data.type === 'round.transition' || data.type === 'round.create' || data.type === 'round.play') {
-        console.log(`Time ${data.countdown_time}`);
-        document.getElementById('currentRound').textContent = `Round ${data.round_number}`;
+        document.getElementById('currentRound').textContent = `Round ${data.round_number} of ${number_of_rounds}`;
         document.getElementById('gameState').textContent = `State: ${data.round_state}`;
         startCountdown(data.countdown_time);
 
@@ -67,10 +62,6 @@ function startCountdown(durationInSeconds) {
 
     let totalMilliseconds = durationInSeconds * 1000; // Convert seconds to milliseconds
     let milliseconds = totalMilliseconds;
-    console.log(
-        "function"
-    )
-    console.log(durationInSeconds);
 
     timerInterval = setInterval(function () {
         if (milliseconds <= 0) {
@@ -98,22 +89,18 @@ function startCountdown(durationInSeconds) {
 
 function updateRoundStateDisplay(roundState) {
 
-    document.getElementById('currentRound').textContent = `Round ` + current_round;
-    document.getElementById('gameState').textContent = `State: ` + roundState;
+    document.getElementById('currentRound').textContent = 'Round ' + current_round + ' of ' + number_of_rounds;
+    document.getElementById('gameState').textContent = 'State: ' + roundState;
     // Hide all states initially
     $('#transitionState').hide();
     $('#playState').hide();
     $('#createState').hide();
-    console.log(roundState);
     // Show the relevant state
     if (roundState === 'transition') {
-        console.log(roundState);
         $('#transitionState').show();
     } else if (roundState === 'play') {
-        console.log(roundState);
         $('#playState').show();
     } else if (roundState === 'create') {
-        console.log(roundState);
         $('#createState').show();
     }
 }
