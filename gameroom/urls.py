@@ -37,4 +37,6 @@ urlpatterns = [
     ),
     path("ajax/reject_sneak/<int:game_id>/", views.reject_sneak, name="reject_sneak"),
     path("qr-code/<int:game_id>/<slug:slug>/", views.qr_code_view, name="qr_code"),
+    # Desktop API
+    path("api/create_game/", views.create_game, name="create_game"),
 ]

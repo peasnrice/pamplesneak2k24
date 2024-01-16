@@ -55,6 +55,12 @@ class CreateGameForm(forms.ModelForm):
     sneaks_per_round = forms.ChoiceField(choices=SNEAK_COUNT_CHOICES, initial="3")
     allow_additional_sneaks = forms.BooleanField(required=False, initial=True)
 
+    def clean_sneaks_per_round(self):
+        sneaks_per_round = self.cleaned_data.get("sneaks_per_round")
+        if sneaks_per_round == "unlimited":
+            return 0
+        return sneaks_per_round
+
     class Meta:
         model = Game
         fields = [

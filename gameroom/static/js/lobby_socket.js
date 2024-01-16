@@ -34,6 +34,7 @@ lobbySocket.onmessage = function (e) {
     if (data.type === 'game.end') {
         document.getElementById('game_info').style.display = 'none'; // Hide game_info
         document.getElementById('end_game').style.display = 'block';  // Show end_game
+        window.location.reload();
     }
 
 };

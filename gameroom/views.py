@@ -29,6 +29,9 @@ from PIL import Image
 from io import BytesIO
 from django.http import HttpResponse
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 from django.conf import settings
 
 
@@ -144,7 +147,19 @@ def joingame(request, game_id, slug):
         player=player, round=current_round
     ).count()
 
+    # determine sneaks sent star count
     can_submit_more = words_submitted_this_round < current_round.sneaks_per_round
+    # no_limits == true allows for any number of sneaks to be sent at the beginning of a round
+    no_limits = False
+
+    # unlimited_sneaks == true allows users to send additioanl sneaks while the round is in progress, otherwise sneaks are limited to between rounds.
+    allow_additional_sneaks = current_round.allow_additional_sneaks
+    if current_round.sneaks_per_round == 0:
+        no_limits = True
+        can_submit_more = True
+        sneak_stars = words_submitted_this_round + 1
+    else:
+        sneak_stars = current_round.sneaks_per_round
 
     # Query to get the words associated with the player and game, not completed
     player_words = (
@@ -183,7 +198,9 @@ def joingame(request, game_id, slug):
         "can_submit_more": can_submit_more,
         "words_submitted_this_round": words_submitted_this_round,
         "remaining_time": remaining_time,
-        "sneaks_range": range(1, current_round.sneaks_per_round + 1),
+        "sneaks_range": range(1, sneak_stars + 1),
+        "no_limits": no_limits,
+        "allow_additional_sneaks": allow_additional_sneaks,
     }
 
     return render(request, "gameroom/ingame.html", context)
@@ -656,3 +673,15 @@ def game_lobby(request, game_id, slug):
             "player": player,
         },
     )
+
+
+# Desktop App API
+
+
+# Create Game
+@api_view(["POST"])
+def create_game(request):
+    game_name = request.data.get("game_name")
+    new_game = Game(game_name=game_name)
+    new_game.save()
+    return Response({"message": "Game created", "game_id": new_game.id})
