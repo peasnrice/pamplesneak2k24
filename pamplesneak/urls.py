@@ -18,6 +18,10 @@ from django.contrib import admin
 from django.urls import path, include
 from pamplesneak import views as pamplesneak_views
 from userprofile.views import user_games
+from django.views.decorators.cache import cache_page
+from django.conf import settings
+from django.conf.urls.static import static
+from pwa import views as pwa_views
 
 
 urlpatterns = [
@@ -28,4 +32,18 @@ urlpatterns = [
     path("__reload__/", include("django_browser_reload.urls")),
     path("gameroom/", include("gameroom.urls")),
     path("user/games/", user_games, name="user-games"),
+    path("", include("pwa.urls")),
+    path(
+        "save_subscription/",
+        pamplesneak_views.save_subscription,
+        name="save_subscription",
+    ),
+    path(
+        "send_push_notification/",
+        pamplesneak_views.send_push_notification,
+        name="send_push_notification",
+    ),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

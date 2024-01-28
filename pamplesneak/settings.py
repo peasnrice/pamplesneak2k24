@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "userprofile",
     "userprofile.templatetags.custom_filters",
     "channels",
+    "pwa",
 ]
 
 MIDDLEWARE = [
@@ -202,6 +203,23 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+PWA_APP_NAME = "pamplesneak"
+PWA_APP_DESCRIPTION = "The passive party game"
+PWA_APP_THEME_COLOR = "#007bff"
+PWA_APP_BACKGROUND_COLOR = "#ffffff"
+PWA_APP_DISPLAY = "standalone"
+PWA_APP_SCOPE = "/"
+PWA_APP_ORIENTATION = "portrait"
+PWA_APP_START_URL = "/"
+PWA_APP_ICONS = [{"src": "/staticfiles/assets/images/logo.png"}]
+PWA_APP_ICONS_APPLE = [{"src": "/staticfiles/assets/images/logo.png"}]
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, "staticfiles/js", "serviceworker.js")
+
+# Push notrification settings
+VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
+VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY")
+VAPID_ADMIN_EMAIL = os.getenv("VAPID_ADMIN_EMAIL")
 
 try:
     from .local_settings import *

@@ -1,0 +1,58 @@
+@keyframes pulseAndRotate {
+
+    0%,
+    100% {
+        transform: scale(1) rotate(-10deg);
+    }
+
+    25% {
+        transform: scale(1.5) rotate(0deg);
+    }
+
+    50% {
+        transform: scale(1) rotate(10deg);
+    }
+
+    75% {
+        transform: scale(1.5) rotate(0deg);
+    }
+}
+
+.sneak-active {
+    font-weight: bold;
+    animation: pulseAndRotate 3s infinite ease-in-out;
+}
+
+.sneak-indicator {
+    /* Add common styles for sneak indicators */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    line-height: 30px;
+    text-align: center;
+}
+
+.sneak-completed::before {
+    content: '';
+    position: absolute;
+    background-color: yellow;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    z-index: -1;
+}
+
+.sneak-active::after {
+    content: '★';
+    /* Unicode star character */
+    position: absolute;
+    color: yellow;
+    /* Star color */
+    font-size: 40px;
+    /* Adjust as needed */
+    z-index: -1;
+}

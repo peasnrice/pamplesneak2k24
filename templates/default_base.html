@@ -1,4 +1,5 @@
-{% load static tailwind_tags %}
+{% load static tailwind_tags pwa %}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -24,6 +25,7 @@
   {% block head %}
   {% endblock %}
   {% tailwind_css %}
+  {% progressive_web_app_meta %}
 </head>
 
 <body class="bg-lavender">
@@ -97,6 +99,26 @@
         mobileMenu.classList.toggle('hidden');
       });
     });
+  </script>
+  <script type="text/javascript">
+    var vapid_public_key = "{{ VAPID_PUBLIC_KEY|safe }}";
+  </script>
+  <script>
+    var csrf_token = "{{ csrf_token }}";
+  </script>
+  <script src="{% static 'js/push_subscriptions.js' %}"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('{% static "js/serviceworker.js" %}')
+        .then((reg) => {
+          console.log('Service worker registered.', reg);
+        })
+        .catch((err) => {
+          console.warn('Service worker registration failed:', err);
+        });
+      });
+    }
   </script>
   {% endblock %}
   </body>
