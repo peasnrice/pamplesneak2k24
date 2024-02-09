@@ -216,7 +216,7 @@ PWA_APP_ICONS = [{"src": "/staticfiles/assets/images/logo.png"}]
 PWA_APP_ICONS_APPLE = [{"src": "/staticfiles/assets/images/logo.png"}]
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, "staticfiles/js", "serviceworker.js")
 
-# Push notrification settings
+# Push notification settings
 VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
 VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY")
 VAPID_ADMIN_EMAIL = os.getenv("VAPID_ADMIN_EMAIL")

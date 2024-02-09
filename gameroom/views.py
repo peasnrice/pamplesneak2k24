@@ -22,6 +22,7 @@ from .tasks import send_game_start_message, round_transition_state
 import random
 import json
 import traceback
+from django.urls import reverse
 
 # QR Code Generation imports
 import qrcode
@@ -31,8 +32,7 @@ from django.http import HttpResponse
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-from django.conf import settings
+from gameroom.utilities import send_push_notification
 
 
 # getActiveGames function now utilizes Django ORM efficiently
@@ -304,6 +304,16 @@ def send_word(request, game_id, round_id):
                 created_by=created_by,
                 round=current_round,
             )
+
+            if to_player:
+                game_slug = game.slug
+                game_url = reverse("gameroom:joingame", args=[game_id, game_slug])
+                notification_payload = {
+                    "title": "New Sneak",
+                    "message": "You've received a new sneak! Check it out.",
+                    "url": game_url,
+                }
+                send_push_notification.delay(to_player.user.id, notification_payload)
 
             messages.success(request, "Message successfully sent!")
 

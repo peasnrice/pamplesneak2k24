@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
 from pamplesneak import views as pamplesneak_views
@@ -39,9 +40,9 @@ urlpatterns = [
         name="save_subscription",
     ),
     path(
-        "send_push_notification/",
-        pamplesneak_views.send_push_notification,
-        name="send_push_notification",
+        "update_or_save_subscription/",
+        pamplesneak_views.update_or_save_subscription,
+        name="update_or_save_subscription",
     ),
 ]
 

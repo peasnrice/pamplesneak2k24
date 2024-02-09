@@ -1,5 +1,59 @@
 // push_subscription.js
 
+// Check for support and bind click event to the subscribe button
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+    navigator.serviceWorker.ready.then(function (registration) {
+        registration.pushManager.getSubscription().then(function (subscription) {
+            if (!subscription) {
+                console.log('Subscribe button clicked');
+
+                const subscribeButton = $('#subscribe');
+                if (subscribeButton) {
+                    subscribeButton.addEventListener('click', askPermission);
+                }
+            } else {
+                console.log('User is already subscribed:', subscription);
+                updateSubscriptionOnServer(subscription);
+            }
+        });
+    });
+} else {
+    console.warn("Push messaging is not supported in this browser");
+}
+
+function initializePushNotifications() {
+    // Check for Push API support
+    if ('PushManager' in window) {
+        navigator.serviceWorker.ready.then(function (registration) {
+            registration.pushManager.getSubscription().then(function (subscription) {
+                if (!subscription) {
+                    askPermission().then(subscribeUserToPush(registration));
+                } else {
+                    console.log('User is already subscribed.');
+                }
+            });
+        });
+    } else {
+        console.warn("Push messaging is not supported in this browser");
+    }
+}
+
+function askPermission() {
+    return new Promise(function (resolve, reject) {
+        const permissionResult = Notification.requestPermission(function (result) {
+            resolve(result);
+        });
+        if (permissionResult) {
+            permissionResult.then(resolve, reject);
+        }
+    })
+        .then(function (permissionResult) {
+            if (permissionResult !== 'granted') {
+                throw new Error('We weren\'t granted permission.');
+            }
+        });
+}
+
 // Function to convert VAPID public key from URL safe base64 to Uint8Array
 function urlBase64ToUint8Array(base64String) {
     // Replace URL-safe base64 characters with standard base64 characters
@@ -46,77 +100,60 @@ function subscribeUserToPush(registration) {
         });
 }
 
-// Function to ask for notification permission
-function askPermission() {
-    return new Promise(function (resolve, reject) {
-        const permissionResult = Notification.requestPermission(function (result) {
-            resolve(result);
-        });
-
-        if (permissionResult) {
-            permissionResult.then(resolve, reject);
-        }
-    })
-        .then(function (permissionResult) {
-            if (permissionResult !== 'granted') {
-                throw new Error('We weren\'t granted permission.');
-            } else {
-                navigator.serviceWorker.ready.then(subscribeUserToPush);
-            }
-        });
-}
-
-// Check for support and bind click event to the subscribe button
-if ('serviceWorker' in navigator && 'PushManager' in window) {
+function checkSubscription() {
     navigator.serviceWorker.ready.then(function (registration) {
         registration.pushManager.getSubscription().then(function (subscription) {
-            if (!subscription) {
-                console.log('Subscribe button clicked');
-
-                const subscribeButton = document.querySelector('#subscribe');
-                if (subscribeButton) {
-                    subscribeButton.addEventListener('click', askPermission);
-                }
-            } else {
+            if (subscription) {
                 console.log('User is already subscribed:', subscription);
-                sendPushNotification(registration);
+                // Send the existing subscription to the server to ensure it's recorded
+                updateSubscriptionOnServer(subscription);
+            } else {
+                console.log('User is not subscribed.');
+                // Optionally, prompt the user to subscribe here
             }
         });
     });
-} else {
-    console.warn("Push messaging is not supported in this browser");
 }
 
-// Function to send a push notification
-function sendPushNotification() {
-    // Customize your notification payload here
-    const notificationOptions = {
-        body: 'This is a push notification on page load!',
-        icon: 'your-icon-url.png', // Add the URL of your notification icon
-    };
-
-    // Use the Service Worker's registration to show the notification
-    self.registration.showNotification('Notification Title', notificationOptions);
-}
-
-// Add an event listener to send a push notification from the client to the server
-document.querySelector('#send-notification').addEventListener('click', function () {
-    fetch('/send_push_notification/', {
+// Update or save the subscription on the server
+function updateSubscriptionOnServer(subscription) {
+    fetch('/update_or_save_subscription/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': csrf_token, // Include the CSRF token using the template tag
+            'X-CSRFToken': csrf_token // Ensure you're passing the CSRF token correctly
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify(subscription)
     })
         .then(function (response) {
             if (response.ok) {
-                console.log('Server push notification sent successfully.');
+                console.log('Subscription record updated or saved on the server.');
             } else {
-                console.error('Failed to send server push notification.');
+                console.error('Failed to update or save the subscription.');
             }
-        })
-        .catch(function (error) {
-            console.error('Error:', error);
         });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Existing code for the hamburger menu
+    var hamburger = document.getElementById('hamburger-button');
+    var mobileMenu = document.getElementById('mobile-menu');
+
+    checkSubscription();
+
+
+    hamburger.addEventListener('click', function () {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Additional code for subscription button
+    var subscribeButton = document.getElementById('subscribe');
+    if (subscribeButton) {
+        subscribeButton.addEventListener('click', function () {
+            console.log('Subscribe button was clicked.');
+            askPermission();
+        });
+    } else {
+        console.log('Subscribe button not found');
+    }
 });

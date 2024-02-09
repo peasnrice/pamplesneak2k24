@@ -60,59 +60,48 @@ def send_web_push(subscription_information, message):
         print(f"Web push failed: {ex}")
 
 
-@login_required
-def send_push_notification(request):
-    try:
-        # Get the authenticated user's subscription information
-        user = request.user
-        push_subscription = get_object_or_404(PushSubscription, user=user)
-
-        subscription_information = json.loads(
-            push_subscription.subscription_json
-        )  # Load JSON from the database
-
-        message = json.dumps(
-            {
-                "title": "Notification Title",
-                "body": "This is a server-side push notification!",
-            }
-        )
-
-        print(subscription_information)
-
-        response = webpush(
-            subscription_info=subscription_information,
-            data=message,
-            vapid_private_key=settings.VAPID_PRIVATE_KEY,
-            vapid_claims={"sub": f"mailto:{settings.VAPID_ADMIN_EMAIL}"},
-        )
-        return JsonResponse(
-            {"status": "success", "message": "Push notification sent successfully."}
-        )
-    except Exception as ex:
-        # Handle any exceptions (e.g., invalid subscription data, webpush exceptions, etc.)
-        return JsonResponse({"status": "error", "message": str(ex)})
-
-
 @csrf_exempt
 @login_required
 def save_subscription(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-
-            # Get the authenticated user
             user = request.user
+            subscription_data = json.dumps(data)
 
-            # Check if the user already has a subscription, and update it if necessary
-            subscription, created = PushSubscription.objects.get_or_create(user=user)
-            subscription.subscription_json = json.dumps(
-                data
-            )  # Store subscription data as JSON
-            subscription.save()
+            # Check if this exact subscription already exists to avoid duplicates
+            existing_subscription = PushSubscription.objects.filter(
+                user=user, subscription_json=subscription_data
+            ).first()
+
+            if not existing_subscription:
+                # If it doesn't exist, create a new subscription
+                PushSubscription.objects.create(
+                    user=user, subscription_json=subscription_data
+                )
 
             return JsonResponse({"status": "success"})
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)})
     else:
         return JsonResponse({"status": "error", "message": "Invalid request method"})
+
+
+@csrf_exempt
+@login_required
+def update_or_save_subscription(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        user = request.user
+        subscription, created = PushSubscription.objects.update_or_create(
+            user=user, defaults={"subscription_json": json.dumps(data)}
+        )
+        if created:
+            return JsonResponse(
+                {"success": True, "message": "Subscription saved."}, status=201
+            )
+        else:
+            return JsonResponse(
+                {"success": True, "message": "Subscription updated."}, status=200
+            )
+    return JsonResponse({"error": True, "message": "Invalid request"}, status=400)

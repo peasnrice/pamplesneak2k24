@@ -1,12 +1,14 @@
 # tasks.py
 from celery import shared_task
 from .models import Game, Round, Player, Word, ExampleWord
+from users.models import PushSubscription
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.utils import timezone
 import json
 import random
-from collections import defaultdict
+from django.urls import reverse
+from gameroom.utilities import send_push_notification
 
 
 @shared_task
@@ -34,7 +36,21 @@ def round_transition_state(game_id):
     round.save()
     countdown_time = round.transition_state_duration.total_seconds()
 
-    # Notify clients of the transition stateåç
+    # Fetch all players subscribed to this game
+    players = Player.objects.filter(game_id=game_id)
+
+    game_url = reverse("gameroom:joingame", args=[game_id, game.slug])
+    notification_payload = {
+        "title": "Round Update",
+        "message": f"Round {current_round} is about to start! Get ready to write some sneaks!",
+        "url": game_url,
+    }
+
+    # Send push notification to all players
+    for player in players:
+        send_push_notification.delay(player.user.id, notification_payload)
+
+    # Notify clients of the transition state
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f"gameroom_{game_id}",
@@ -162,11 +178,37 @@ def end_round(game_id):
 
     # If more rounds remain, start the next round
     if game.current_round <= game.number_of_rounds:
+        # Fetch all players subscribed to this game
+        players = Player.objects.filter(game_id=game_id)
+
+        game_url = reverse("gameroom:stats", args=[game_id, game.slug])
+        notification_payload = {
+            "title": "Round Complete!",
+            "message": f"Take alook at what's been said on!",
+            "url": game_url,
+        }
+        # Send push notification to all players
+        for player in players:
+            send_push_notification.delay(player.user.id, notification_payload)
         round_transition_state.apply_async((game_id,))
     else:
         game.ended = True
         game.current_round = game.number_of_rounds
         game.save()
+
+        # Fetch all players subscribed to this game
+        players = Player.objects.filter(game_id=game_id)
+
+        game_url = reverse("gameroom:stats", args=[game_id, game.slug])
+        notification_payload = {
+            "title": "Game Complete",
+            "message": f"That's a wrap, check out the game stats!",
+            "url": game_url,
+        }
+        # Send push notification to all players
+        for player in players:
+            send_push_notification.delay(player.user.id, notification_payload)
+
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f"gameroom_{game_id}",
