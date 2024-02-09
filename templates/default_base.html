@@ -45,7 +45,7 @@
                 Lobby</a> -->
               {% if user.is_authenticated %}
                 <a class="py-2 px-3 text-gray-700 hover:text-gray-900" href="{% url 'user-games' %}">{{ user.username }}'s Games</a>
-                <a class="py-2 px-3 text-gray-700 hover:text-gray-900" href="/accounts/logout">Log out</a>
+                <a class="py-2 px-3 text-gray-700 hover:text-gray-900" href="{% url 'account_logout' %}">Log out</a>
               {% else %}
               <a class="py-2 px-3 text-gray-700 hover:text-gray-900" href="/">Log In / Sign Up</a>
               {% endif %}

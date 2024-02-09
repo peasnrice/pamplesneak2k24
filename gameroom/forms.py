@@ -120,7 +120,7 @@ class MessageSender(forms.Form):
         max_length=128,
         widget=forms.Textarea(  # Changed from TextInput to Textarea
             attrs={
-                "class": "form-input block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50",
+                "class": "class_word form-input block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50",
                 "rows": 3,  # specify the number of rows
             }
         ),
@@ -138,8 +138,12 @@ class MessageSender(forms.Form):
     )
 
     def __init__(self, players, *args, **kwargs):
+        hide_target = kwargs.pop("hide_target", False)  # Add this line
         super().__init__(*args, **kwargs)
         self.fields["target"].choices = [(id, name) for id, name in players.items()]
+        if hide_target:  # Conditionally hide the target field
+            self.fields["target"].widget = forms.HiddenInput()
+            self.fields["target"].required = False
         self.order_fields(["word", "target", "send_anonymously"])
 
 

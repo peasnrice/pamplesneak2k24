@@ -53,19 +53,22 @@
 
 {% block content %}
 
-{% if player_count > 0 %}
+{{ game }}
+{{ current_round }}
+{{ player_count }}
 
-{% if not game.ended %}
-  <div id="game_info" class="flex flex-col items-center justify-center">
-    <span id="currentRound" class="text-center"></span>
-    <span id="gameState" class="text-center"></span>
-    <span id="countdown" class="text-center"></span>
-  </div>
-{% else %}
-  <div id="end_game" class="flex items-center justify-center">
-    <span class="text-center">Game has ended</span>
-  </div>
-{% endif %}
+{% if player_count > 0 %}
+  {% if not game.ended %}
+    <div id="game_info" class="flex flex-col items-center justify-center">
+      <span id="currentRound" class="text-center"></span>
+      <span id="gameState" class="text-center"></span>
+      <span id="countdown" class="text-center"></span>
+    </div>
+  {% else %}
+    <div id="end_game" class="flex items-center justify-center">
+      <span class="text-center">Game has ended</span>
+    </div>
+  {% endif %}
 
   <div class="container mx-auto px-4">
     {% if messages %}
@@ -86,6 +89,9 @@
   <div id="playState" class="container mx-auto px-4 py-4 hidden" style="background-color: #1E7B4F;">
     <div class="my-4">
       {% include "gameroom/playerword.html" %}
+    </div>
+    <div class="container mx-auto px-4 py-4 text-center" style="background-color: #E7A13D;">
+      {% include "gameroom/messageform.html" %}
     </div>
   </div>
   

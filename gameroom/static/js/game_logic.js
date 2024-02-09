@@ -42,9 +42,10 @@ $(document).ready(function () {
     });
 
     // Character count for the 'word' field
-    $('#id_word').on('input', function () {
+    $('.class_word').on('input', function () {
         const currentLength = $(this).val().length;
-        $('#word_count').text(`${currentLength}/128`);
+        // Update all instances of .class_word_count with the currentLength
+        $('.class_word_count').text(`${currentLength}/128`);
     });
 
     // Delegated event handling for dynamic content
@@ -269,9 +270,9 @@ async function get_inspiration() {
 
         if (response.ok) {
             const data = await response.json();
-
-            $('#id_word').val(data.response_text);
-            $('#id_word').trigger('input');
+            console.log(data);
+            $('.class_word').val(data.response_text);
+            $('.class_word').trigger('input');
 
 
         } else {

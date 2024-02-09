@@ -141,7 +141,9 @@ def joingame(request, game_id, slug):
     all_players_query = Player.objects.filter(game=game)
     players_query = Player.objects.filter(game=game).exclude(id=player.id)
     players_dict = {p.id: p.name for p in players_query}
-    form = MessageSender(players_dict)
+
+    hide_target = current_round.state == "create" or current_round.state == "transition"
+    form = MessageSender(players_dict, hide_target=hide_target)
 
     words_submitted_this_round = Word.objects.filter(
         player=player, round=current_round
@@ -175,6 +177,12 @@ def joingame(request, game_id, slug):
     # Select the first word or None if the list is empty
     current_player_word = player_words[0] if player_words else None
 
+    # Calculate the total sneaks allowed (assuming sneaks_range is a list or similar iterable)
+    total_sneaks = sneak_stars
+
+    # Calculate remaining sneaks
+    remaining_sneaks = sneak_stars - words_submitted_this_round
+
     remaining_time = current_round.get_remaining_time()
     print(current_round)
     print(current_round.round_number)
@@ -201,6 +209,8 @@ def joingame(request, game_id, slug):
         "sneaks_range": range(1, sneak_stars + 1),
         "no_limits": no_limits,
         "allow_additional_sneaks": allow_additional_sneaks,
+        "hide_target": hide_target,
+        "remaining_sneaks": remaining_sneaks,
     }
 
     return render(request, "gameroom/ingame.html", context)
@@ -266,13 +276,24 @@ def send_word(request, game_id, round_id):
     can_submit_more = words_submitted_this_round < current_round.sneaks_per_round
 
     if request.method == "POST":
-        form = MessageSender(players_dict, request.POST)
+        hide_target = (
+            current_round.state == "create" or current_round.state == "transition"
+        )
+        form = MessageSender(players_dict, request.POST, hide_target=hide_target)
         if form.is_valid():
             # Process the form data and create a Word object
             word = form.cleaned_data["word"]
-            to_player_id = form.cleaned_data["target"]
+            to_player_id = form.cleaned_data.get("target")
 
-            to_player = Player.objects.get(id=to_player_id)
+            if to_player_id:
+                try:
+                    to_player = Player.objects.get(id=to_player_id)
+                except Player.DoesNotExist:
+                    # Handle the case where the player does not exist
+                    to_player = None
+            else:
+                to_player = None
+
             created_by = None if form.cleaned_data["send_anonymously"] else player
 
             Word.objects.create(
@@ -287,12 +308,20 @@ def send_word(request, game_id, round_id):
             messages.success(request, "Message successfully sent!")
 
             return redirect("gameroom:joingame", game_id=game_id, slug=game.slug)
+        else:
+            print("form errros:")
+            print(form.errors)
     else:
-        form = MessageSender(players_dict)
+        hide_target = (
+            current_round.state == "create" or current_round.state == "transition"
+        )
+        form = MessageSender(players_dict, hide_target=hide_target)
 
     context = {
         "form": form,
         "game": game,
+        "player": player,
+        "current_round": current_round,
         "can_submit_more": can_submit_more,
         "words_submitted_this_round": words_submitted_this_round,
         "remaining_time": current_round.get_remaining_time(),

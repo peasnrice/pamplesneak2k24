@@ -1,10 +1,12 @@
 # tasks.py
 from celery import shared_task
-from .models import Game, Round
+from .models import Game, Round, Player, Word, ExampleWord
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.utils import timezone
 import json
+import random
+from collections import defaultdict
 
 
 @shared_task
@@ -32,7 +34,7 @@ def round_transition_state(game_id):
     round.save()
     countdown_time = round.transition_state_duration.total_seconds()
 
-    # Notify clients of the transition state
+    # Notify clients of the transition stateåç
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f"gameroom_{game_id}",
@@ -82,6 +84,52 @@ def start_play_state(game_id):
     round.state = "play"
     round.state_start_time = timezone.now()
     round.save()
+
+    players = list(Player.objects.filter(game=game))
+    number_of_players = len(players)
+    sneaks_per_round = round.sneaks_per_round
+    total_sneaks_required = number_of_players * sneaks_per_round
+
+    # Calculate total words submitted
+    total_words_submitted = Word.objects.filter(round=round, game=game).count()
+
+    # Determine shortfall and create words from ExampleWord if needed
+    shortfall = total_sneaks_required - total_words_submitted
+    if shortfall > 0:
+        for _ in range(shortfall):
+            example_word = random.choice(list(ExampleWord.objects.all()))
+            Word.objects.create(
+                word=example_word.word,
+                round=round,
+                game=game,
+                # created_by remains None for app-created words
+            )
+
+    # Distribute words, ensuring no player receives their own word and everyone gets the same number of sneaks
+    # First, collect all words for this round, including newly added words
+    all_words = list(
+        Word.objects.filter(round=round, game=game).select_related("created_by")
+    )
+
+    # Shuffle words to randomize distribution
+    random.shuffle(all_words)
+
+    # Initialize distribution data structure
+    distribution = {player.id: [] for player in players}
+
+    # Attempt to distribute words evenly, ensuring no self-created words are received
+    for word in all_words:
+        for player in players:
+            if word.created_by is None or word.created_by != player:
+                if len(distribution[player.id]) < sneaks_per_round:
+                    distribution[player.id].append(word)
+                    break
+
+    # Assign words to players based on the distribution
+    for player_id, words in distribution.items():
+        for word in words:
+            word.send_to = Player.objects.get(id=player_id)
+            word.save()
 
     # Notify all clients to show the round screen
     channel_layer = get_channel_layer()
