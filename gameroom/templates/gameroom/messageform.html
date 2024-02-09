@@ -1,7 +1,7 @@
     <!-- FOR WHEN IN CREATE MODE -->
-{% if current_round.state == 'create'%} 
+{% if form_type == "create" %}
     {% if can_submit_more %}
-        <p class="text-xl font-bold">Keep writing pamplesneaks! you have written {{ i }} of {{ sneaks_range }}</p>
+        <p class="text-xl font-bold">Keep writing pamplesneaks! You have written {{ words_submitted_this_round }} of {{ sneaks_range|length }}</p>
         <div class="sneak-progress-container flex justify-center space-x-4 my-4">
             {% for i in sneaks_range %}
                 <div class="sneak-indicator {% if words_submitted_this_round >= i %}bg-green{% else %}bg-gray{% endif %}">{{ i }}</div>

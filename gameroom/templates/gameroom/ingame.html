@@ -53,10 +53,6 @@
 
 {% block content %}
 
-{{ game }}
-{{ current_round }}
-{{ player_count }}
-
 {% if player_count > 0 %}
   {% if not game.ended %}
     <div id="game_info" class="flex flex-col items-center justify-center">
@@ -91,12 +87,12 @@
       {% include "gameroom/playerword.html" %}
     </div>
     <div class="container mx-auto px-4 py-4 text-center" style="background-color: #E7A13D;">
-      {% include "gameroom/messageform.html" %}
+      {% include "gameroom/messageform.html" with form_type="play" %}
     </div>
   </div>
   
   <div id="createState" class="container mx-auto px-4 py-4 text-center hidden" style="background-color: #E7A13D;">
-    {% include "gameroom/messageform.html" %}
+    {% include "gameroom/messageform.html" with form_type="create"%}
   </div>
 
 {% else %}
