@@ -17,11 +17,3 @@ self.addEventListener('push', function (event) {
         self.registration.showNotification('Notification Title', options)
     );
 });
-
-navigator.serviceWorker.register('serviceworker.js')
-    .then(function (swReg) {
-        console.log('Service Worker is registered', swReg);
-    })
-    .catch(function (error) {
-        console.error('Service Worker Error', error);
-    });
