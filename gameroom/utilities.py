@@ -25,6 +25,8 @@ def send_push_notification(user_id, payload):
             }
         }
     )
+    print("notification payload")
+    print(notification_data)
 
     # Iterate over all subscriptions and send the notification
     for subscription in subscriptions:
@@ -36,7 +38,7 @@ def send_push_notification(user_id, payload):
                 data=notification_data,
                 vapid_private_key=settings.VAPID_PRIVATE_KEY,
                 vapid_claims={
-                    "sub": "mailto:your-email@example.com",
+                    "sub": "mailto:andy@peasnrice.com",
                 },
             )
         except WebPushException as e:

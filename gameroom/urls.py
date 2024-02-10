@@ -31,6 +31,11 @@ urlpatterns = [
         name="word_fail",
     ),
     path(
+        "ajax/word_skip/<int:word_id>/<int:game_id>/<int:player_id>/",
+        views.word_skip,
+        name="word_skip",
+    ),
+    path(
         "ajax/validate_sneak/<int:game_id>/",
         views.validate_sneak,
         name="validate_sneak",

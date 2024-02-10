@@ -9,19 +9,17 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', function (event) {
-    const options = {
-        body: event.data.text(),
-        // You can add more options here, like icons, images, vibrate, etc.
+    const eventData = event.data.json(); // Assuming the incoming data is a JSON string.
+    const notificationTitle = eventData.notification.title;
+    const notificationOptions = {
+        body: eventData.notification.body,
+        icon: eventData.notification.icon,
+        data: {
+            url: eventData.notification.click_action
+        }
     };
+
     event.waitUntil(
-        self.registration.showNotification('Notification Title', options)
+        self.registration.showNotification(notificationTitle, notificationOptions)
     );
 });
-
-navigator.serviceWorker.register('serviceworker.js')
-    .then(function (swReg) {
-        console.log('Service Worker is registered', swReg);
-    })
-    .catch(function (error) {
-        console.error('Service Worker Error', error);
-    });

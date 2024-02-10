@@ -374,6 +374,10 @@ def refresh_word(request, game_id, player_id):
 
 
 def word_success(request, word_id, game_id, player_id):
+
+    print("word_id")
+    print(word_id)
+
     game_word = Word.objects.get(id=word_id)
     # Perform the success logic here
     game_word.completed = True

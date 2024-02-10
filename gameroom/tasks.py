@@ -205,6 +205,7 @@ def end_round(game_id):
             "message": f"That's a wrap, check out the game stats!",
             "url": game_url,
         }
+
         # Send push notification to all players
         for player in players:
             send_push_notification.delay(player.user.id, notification_payload)
