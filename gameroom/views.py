@@ -2,8 +2,9 @@ from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
-from gameroom.models import Game, Round, Player, Word, Vote, ExampleWord
-from users.models import CustomUser, UserProfile
+from django.views.decorators.http import require_POST
+from gameroom.models import Game, Round, Player, Word, Vote, ExampleWord, Like
+from users.models import UserProfile
 from gameroom.forms import (
     MessageSender,
     CreateGameForm,
@@ -26,9 +27,10 @@ from django.urls import reverse
 
 # QR Code Generation imports
 import qrcode
-from PIL import Image
 from io import BytesIO
 from django.http import HttpResponse
+from django.utils import timezone
+
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -218,7 +220,7 @@ def joingame(request, game_id, slug):
 
 @login_required
 @never_cache
-def stats(request, game_id, slug):
+def timeline(request, game_id, slug):
     game = get_object_or_404(Game, pk=game_id)
     current_round = Round.objects.get(game=game, round_number=game.current_round)
     user = request.user
@@ -228,12 +230,27 @@ def stats(request, game_id, slug):
 
     all_players_query = Player.objects.filter(game=game).order_by("-succesful_sneaks")
 
-    successful_sneaks = Word.objects.filter(game=game, successful=True).select_related(
-        "player", "created_by"
+    all_sneaks = Word.objects.filter(
+        game=game,
+        completed=True,
+    ).order_by("-time_completed")
+
+    successful_sneaks = (
+        Word.objects.filter(game=game, completed=True, successful=True)
+        .select_related("player", "created_by")
+        .order_by("-created")
     )
 
-    failed_sneaks = Word.objects.filter(game=game, successful=False).select_related(
-        "player", "created_by"
+    failed_sneaks = (
+        Word.objects.filter(game=game, completed=True, successful=False, skipped=False)
+        .select_related("player", "created_by")
+        .order_by("-created")
+    )
+
+    skipped_sneaks = (
+        Word.objects.filter(game=game, completed=True, skipped=True)
+        .select_related("player", "created_by")
+        .order_by("-created")
     )
 
     received_sneaks = Word.objects.filter(
@@ -242,8 +259,10 @@ def stats(request, game_id, slug):
 
     context = {
         "players": all_players_query,
+        "all_sneaks": all_sneaks,
         "successful_sneaks": successful_sneaks,
         "failed_sneaks": failed_sneaks,
+        "skipped_sneaks": skipped_sneaks,
         "received_sneaks": received_sneaks,
         "user_id": request.user.id,
         "player": player,
@@ -252,7 +271,60 @@ def stats(request, game_id, slug):
         "remaining_time": current_round.get_remaining_time(),
     }
 
-    return render(request, "gameroom/ingamestats.html", context)
+    return render(request, "gameroom/timeline.html", context)
+
+
+@login_required
+@never_cache
+def leaderboard(request, game_id, slug):
+    game = get_object_or_404(Game, pk=game_id)
+    current_round = Round.objects.get(game=game, round_number=game.current_round)
+    user = request.user
+    player, created = Player.objects.get_or_create(
+        game=game, user=user, defaults={"name": user.username}
+    )
+
+    all_players_query = Player.objects.filter(game=game).order_by("-succesful_sneaks")
+
+    all_sneaks = Word.objects.filter(game=game).order_by("-created")
+
+    successful_sneaks = (
+        Word.objects.filter(game=game, successful=True)
+        .select_related("player", "created_by")
+        .order_by("-created")
+    )
+
+    failed_sneaks = (
+        Word.objects.filter(game=game, successful=False, skipped=False)
+        .select_related("player", "created_by")
+        .order_by("-created")
+    )
+
+    skipped_sneaks = (
+        Word.objects.filter(game=game, skipped=True)
+        .select_related("player", "created_by")
+        .order_by("-created")
+    )
+
+    received_sneaks = Word.objects.filter(
+        game=game,
+    ).select_related("player", "created_by")
+
+    context = {
+        "players": all_players_query,
+        "all_sneaks": all_sneaks,
+        "successful_sneaks": successful_sneaks,
+        "failed_sneaks": failed_sneaks,
+        "skipped_sneaks": skipped_sneaks,
+        "received_sneaks": received_sneaks,
+        "user_id": request.user.id,
+        "player": player,
+        "game": game,
+        "current_round": current_round,
+        "remaining_time": current_round.get_remaining_time(),
+    }
+
+    return render(request, "gameroom/leaderboard.html", context)
 
 
 @login_required
@@ -382,6 +454,8 @@ def word_success(request, word_id, game_id, player_id):
     # Perform the success logic here
     game_word.completed = True
     game_word.successful = True
+    game_word.skipped = False
+    game_word.time_completed = timezone.now()
     game_word.save()
 
     player = game_word.send_to
@@ -422,6 +496,7 @@ def word_fail(request, word_id, game_id, player_id):
     # Perform the success logic here
     game_word.completed = True
     game_word.successful = False
+    game_word.skipped = False
     game_word.save()
 
     player = game_word.send_to
@@ -514,6 +589,7 @@ def get_inspiration(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@require_POST
 def validate_sneak(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     user = request.user
@@ -524,49 +600,113 @@ def validate_sneak(request, game_id):
     sneak_id = data.get("sneak_id")
     sneak = get_object_or_404(Word, id=sneak_id)
 
-    vote, created = Vote.objects.get_or_create(
-        word=sneak, player=player, defaults={"vote_type": "validate"}
-    )
-    vote.vote_type = "validate"
-    vote.save()
-    sneak = get_object_or_404(Word, id=sneak_id)
+    # Check if a validate vote already exists
+    existing_vote = Vote.objects.filter(word=sneak, player=player).first()
 
-    if not created:
-        print("vote note created")
+    if existing_vote and existing_vote.vote_type == "validate":
+        # If a validate vote exists, remove it to undo the validation
+        existing_vote.delete()
+        validated = False
+    else:
+        # If no validate vote exists or a reject vote exists, change to validate
+        Vote.objects.update_or_create(
+            word=sneak, player=player, defaults={"vote_type": "validate"}
+        )
+        validated = True
+
+    # Update counts after modification
+    sneak.validations_count = Vote.objects.filter(
+        word=sneak, vote_type="validate"
+    ).count()
+    sneak.rejections_count = Vote.objects.filter(word=sneak, vote_type="reject").count()
+    sneak.save()
+
     return JsonResponse(
         {
             "validations_count": sneak.validations_count,
             "rejections_count": sneak.rejections_count,
+            "validated": validated,
         }
     )
 
 
+@require_POST
 def reject_sneak(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     user = request.user
     player, created = Player.objects.get_or_create(
         game=game, user=user, defaults={"name": user.username}
     )
-
     data = json.loads(request.body)
     sneak_id = data.get("sneak_id")
     sneak = get_object_or_404(Word, id=sneak_id)
 
-    vote, created = Vote.objects.get_or_create(
-        word=sneak, player=player, defaults={"vote_type": "reject"}
-    )
-    vote.vote_type = "reject"
-    vote.save()
-    print(sneak.validations_count)
-    sneak = get_object_or_404(Word, id=sneak_id)
+    # Check if a reject vote already exists
+    existing_vote = Vote.objects.filter(word=sneak, player=player).first()
 
-    if not created:
-        print("vote note created")
+    if existing_vote and existing_vote.vote_type == "reject":
+        # If a reject vote exists, remove it to undo the rejection
+        existing_vote.delete()
+        rejected = False
+    else:
+        # If no reject vote exists or a validate vote exists, change to reject
+        Vote.objects.update_or_create(
+            word=sneak, player=player, defaults={"vote_type": "reject"}
+        )
+        rejected = True
+
+    # Update counts after modification
+    sneak.validations_count = Vote.objects.filter(
+        word=sneak, vote_type="validate"
+    ).count()
+    sneak.rejections_count = Vote.objects.filter(word=sneak, vote_type="reject").count()
+    sneak.save()
 
     return JsonResponse(
         {
             "validations_count": sneak.validations_count,
             "rejections_count": sneak.rejections_count,
+            "rejected": rejected,
+        }
+    )
+
+
+@require_POST
+def like_sneak(request, game_id):
+    game = get_object_or_404(Game, pk=game_id)
+    user = request.user
+    player, created = Player.objects.get_or_create(
+        game=game, user=user, defaults={"name": user.username}
+    )
+    data = json.loads(request.body)
+    sneak_id = data.get("sneak_id")
+    sneak = get_object_or_404(Word, id=sneak_id)
+
+    # Check if a like already exists
+    like_exists = Like.objects.filter(word=sneak, player=player).exists()
+
+    if like_exists:
+        # If a like exists, unlike (remove the like)
+        Like.objects.filter(word=sneak, player=player).delete()
+        liked = False  # Indicate that the user has unliked the word
+    else:
+        # If no like exists, add a new like
+        Like.objects.create(word=sneak, player=player)
+        liked = True  # Indicate that the user has liked the word
+
+    sneak.likes_count = sneak.likes.all().count()
+    sneak.save()
+
+    if created:
+        # If a new like was successfully added, update the like count on the Word model
+        sneak.likes_count = sneak.likes.all().count()
+        sneak.save()
+
+    return JsonResponse(
+        {
+            "validations_count": sneak.validations_count,
+            "rejections_count": sneak.rejections_count,
+            "likes_count": sneak.likes_count,
         }
     )
 

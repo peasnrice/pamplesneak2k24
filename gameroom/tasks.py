@@ -181,10 +181,10 @@ def end_round(game_id):
         # Fetch all players subscribed to this game
         players = Player.objects.filter(game_id=game_id)
 
-        game_url = reverse("gameroom:stats", args=[game_id, game.slug])
+        game_url = reverse("gameroom:timeline", args=[game_id, game.slug])
         notification_payload = {
             "title": "Round Complete!",
-            "message": f"Take alook at what's been said on!",
+            "message": f"Take a look at what's been said!",
             "url": game_url,
         }
         # Send push notification to all players
@@ -199,10 +199,10 @@ def end_round(game_id):
         # Fetch all players subscribed to this game
         players = Player.objects.filter(game_id=game_id)
 
-        game_url = reverse("gameroom:stats", args=[game_id, game.slug])
+        game_url = reverse("gameroom:leaderboard", args=[game_id, game.slug])
         notification_payload = {
             "title": "Game Complete",
-            "message": f"That's a wrap, check out the game stats!",
+            "message": f"That's a wrap, check out the leaderboard!",
             "url": game_url,
         }
 

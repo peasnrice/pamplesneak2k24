@@ -1,0 +1,108 @@
+{% extends "default_base.html" %}
+{% load static %}
+
+{% block head %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+  var gameId = "{{ game.id }}";
+  var playerId = "{{ player.id }}";
+</script>
+<script src="{% static 'js/game_logic.js' %}"></script>
+{% endblock %}
+
+{% block jumbotron %}
+  <!-- Flex container with responsive direction -->
+  <div class="flex flex-col md:flex-row justify-between items-center p-4">
+    
+    <!-- Left side: Game Info and Buttons, stacks on top on small screens -->
+    <div class="min-h-[150px]">
+      <h1 class="text-3xl font-bold">{{ game.game_name }}</h1>
+      <h2 class="text-2xl">Game Room Code: {{ game.game_room_code }}</h2>
+      
+      <!-- Flex container with responsive design -->
+      <div class="flex flex-col sm:flex-row my-4 space-y-2 sm:space-y-0 sm:space-x-2">
+        <a href="{% url 'gameroom:joingame' game_id=game.id slug=game.slug %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block text-center">
+            Back to the game!
+        </a>
+        <a href="{% url 'gameroom:timeline' game_id=game.id slug=game.slug %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block text-center">
+            Timeline!
+        </a>
+        <button id="show_qr_code_button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex-grow">
+            Show Share Game Code
+        </button>
+        <button id="hide_qr_code_button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded hidden flex-grow">
+            Hide Share Game Code
+        </button>
+      </div>
+  </div>
+
+    <!-- Right side: QR Code, moves below on small screens -->
+    <div class="mt-4 md:mt-0 md:ml-4">
+      <img src="{% url 'gameroom:qr_code' game_id=game.id slug=game.slug %}" alt="QR Code" id="qrCodeImage" style="height: 150px;" class="hidden">
+    </div>
+  
+  </div>
+{% endblock %}
+
+{% block content %}
+
+<div class="container mx-auto p-4"> 
+    <!-- Gradient Background Wrapper -->
+    <div class="relative overflow-hidden bg-gradient-to-r from-blue-100 to-indigo-100 p-4 rounded-lg shadow-md">
+    <!-- Full width for the leaderboard with more vibrant background -->
+    <h2 class="text-3xl font-bold mb-4 text-center text-indigo-700">🏆 Leaderboard 🏆</h2>
+    {% if players %}
+        <!-- Pseudo-element for Gradient Header -->
+        <div class="overflow-x-auto relative">
+            <div class="absolute inset-0 bg-gradient-to-l from-indigo-500 to-purple-600 rounded-t-lg opacity-75"></div>
+            <table class="w-full text-sm divide-y divide-gray-200 relative z-10">
+                <thead class="text-white">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left font-medium">Player</th>
+                        <th scope="col" class="px-6 py-3 text-left font-medium">Successful Sneaks</th>
+                        <th scope="col" class="px-6 py-3 text-left font-medium">Failed Sneaks</th>
+                        <th scope="col" class="px-6 py-3 text-left font-medium">Skipped Sneaks</th>
+                        <th scope="col" class="px-6 py-3 text-left font-medium">Likes</th>
+                        <th scope="col" class="px-6 py-3 text-left font-medium">Received Sneaks</th>
+                    </tr>
+                </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for player in players %}
+                            <tr class="hover:bg-gray-100 transition duration-150 ease-in-out">
+                                <td class="px-6 py-4 font-medium text-gray-900 flex items-center">
+                                    {{ player.name }}
+                                    {% if forloop.counter == 1 %}
+                                        <span class="ml-2">🥇</span>
+                                    {% elif forloop.counter == 2 %}
+                                        <span class="ml-2">🥈</span>
+                                    {% elif forloop.counter == 3 %}
+                                        <span class="ml-2">🥉</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold leading-none text-green-800 bg-green-200 rounded-full">{{ player.succesful_sneaks }} 🌟</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold leading-none text-red-800 bg-red-200 rounded-full">{{ player.failed_sneaks }} 💥</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold leading-none text-yellow-800 bg-yellow-200 rounded-full">{{ player.skipped_sneaks }} ⏭</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold leading-none text-pink-800 bg-pink-200 rounded-full">{{ player.likes }} ❤️</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ player.received_sneaks }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-gray-500 text-center">No sneaky stats yet 🕵️‍♂️</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

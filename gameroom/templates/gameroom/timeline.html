@@ -1,0 +1,99 @@
+{% extends "default_base.html" %}
+{% load static %}
+
+{% block head %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+  var gameId = "{{ game.id }}";
+  var playerId = "{{ player.id }}";
+</script>
+<script src="{% static 'js/game_logic.js' %}"></script>
+{% endblock %}
+
+{% block jumbotron %}
+  <!-- Flex container with responsive direction -->
+  <div class="flex flex-col md:flex-row justify-between items-center p-4">
+    
+    <!-- Left side: Game Info and Buttons, stacks on top on small screens -->
+    <div class="min-h-[150px]">
+      <h1 class="text-3xl font-bold">{{ game.game_name }}</h1>
+      <h2 class="text-2xl">Game Room Code: {{ game.game_room_code }}</h2>
+      
+      <!-- Flex container with responsive design -->
+      <div class="flex flex-col sm:flex-row my-4 space-y-2 sm:space-y-0 sm:space-x-2">
+        <a href="{% url 'gameroom:joingame' game_id=game.id slug=game.slug %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block text-center">
+            Back to the game!
+        </a>
+        <a href="{% url 'gameroom:leaderboard' game_id=game.id slug=game.slug %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block text-center">
+            Leaderboard!
+        </a>
+        <button id="show_qr_code_button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex-grow">
+            Show Share Game Code
+        </button>
+        <button id="hide_qr_code_button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded hidden flex-grow">
+            Hide Share Game Code
+        </button>
+      </div>
+  </div>
+
+    <!-- Right side: QR Code, moves below on small screens -->
+    <div class="mt-4 md:mt-0 md:ml-4">
+      <img src="{% url 'gameroom:qr_code' game_id=game.id slug=game.slug %}" alt="QR Code" id="qrCodeImage" style="height: 150px;" class="hidden">
+    </div>
+  
+  </div>
+{% endblock %}
+
+{% block content %}
+
+{% include "gameroom/filters.html" %}
+
+<div class="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
+    <h2 id="sneaksTitle" class="text-2xl font-bold mb-4">All Sneaks</h2>
+    {% for sneak in all_sneaks %}
+    <div id="{{ sneak.id }}" data-status="{% if sneak.successful %}successful{% elif sneak.skipped %}skipped{% else %}failed{% endif %}" class="card relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+        <!-- Icon Placeholder - Customize based on sneak's status -->
+        <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-300 text-slate-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+            <!-- Dynamic SVG icon can be added here based on the sneak's status -->
+        </div>
+        <!-- Card Content -->
+        <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded border border-slate-200 shadow">
+            <div class="mt-2">
+                {% if sneak.successful %}
+                    <span class="text-green-500 text-xl font-bold">🌟 Success</span>
+                {% elif sneak.skipped %}
+                    <span class="text-yellow-500 text-xl font-bold">⏭ Skip</span>
+                {% else %}
+                    <span class="text-red-500 text-xl font-bold">❌ Fail</span>
+                {% endif %}
+            </div>
+            <div class="text-slate-500">
+                <time class="font-caveat font-medium text-indigo-500">{{ sneak.created|date:"d/m/Y H:i" }}</time>
+                <p>{{ sneak.created_by.name }} => {{ sneak.send_to.name }}</p>
+            </div>
+            <div class="flex items-center justify-between space-x-2 mb-1">
+                <div class="font-bold text-slate-900">"{{ sneak.word }}"</div>
+            </div>
+            <!-- Voting and Like Mechanism -->
+            <div>
+                {% if sneak.successful %}
+                    <button class="validate_sneak mr-2 px-2 py-1 bg-green-500 text-white rounded">Validate</button>
+                    <button class="reject_sneak px-2 py-1 bg-red-500 text-white rounded">Reject</button>
+                {% endif %}
+                <button class="like_sneak px-2 py-1 bg-blue-500 text-white rounded">Like</button>
+            </div>
+            <!-- Display validations and rejections if successful -->
+            <div class="votes">
+                {% if sneak.successful %}
+                    <p>
+                        Validations: <strong class="validation-count">{{ sneak.validations_count }} 🌟</strong>,
+                        Rejections: <strong class="rejection-count">{{ sneak.rejections_count }} 💔</strong>,
+                    </p>
+                {% endif %}
+                Likes: <strong class="like-count">{{ sneak.likes_count }} ❤️</strong>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

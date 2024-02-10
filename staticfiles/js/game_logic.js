@@ -38,7 +38,7 @@ $(document).ready(function () {
         const wordId = $(this).data('word-id');
         const gameId = $(this).data('game-id');
         const playerId = $(this).data('player-id');
-        word_fail(wordId, gameId, playerId);
+        word_skip(wordId, gameId, playerId);
     });
 
     // Character count for the 'word' field
@@ -91,6 +91,31 @@ $(document).ready(function () {
             currentCardIndex = cards.length - 1;
             showCard(currentCardIndex);
         }
+    });
+
+    // Filter Chip click event
+    $('.filter-chip').click(function () {
+        // First, reset all chips to the base state
+        $('.filter-chip').removeClass('shadow-md').addClass('opacity-100'); // Assume all are fully opaque and without shadow by default
+
+        // Then, apply the active state to the clicked filter chip
+        $(this).addClass('shadow-md').removeClass('opacity-75'); // Active chip gets a shadow
+
+        // Get the status from the clicked filter chip
+        var status = $(this).data('filter');
+
+        // Toggle cards with matching status
+        $('.card').each(function () {
+            var cardStatus = $(this).data('status');
+            if (status === cardStatus || status === 'all') {
+                $(this).removeClass('hidden'); // Show matching cards
+            } else {
+                $(this).addClass('hidden'); // Hide non-matching cards
+            }
+        });
+
+        // Inactivate other chips by reducing opacity
+        $('.filter-chip').not(this).removeClass('shadow-md').addClass('opacity-75'); // Other chips are less opaque without shadow
     });
 
 

@@ -10,7 +10,14 @@ urlpatterns = [
     path("pampleplay/", views.pampleplay, name="pampleplay"),
     # path("pampleplay/create", views.creategame, name="creategame"),
     # path("pampleplay/join", views.joingame2, name="joingame2"),
-    path("pampleplay/<int:game_id>/<slug:slug>/stats", views.stats, name="stats"),
+    path(
+        "pampleplay/<int:game_id>/<slug:slug>/timeline", views.timeline, name="timeline"
+    ),
+    path(
+        "pampleplay/<int:game_id>/<slug:slug>/leaderboard",
+        views.leaderboard,
+        name="leaderboard",
+    ),
     path("pampleplay/<int:game_id>/<slug:slug>/", views.joingame, name="joingame"),
     path("pampleplay/<int:game_id>/<slug:slug>/lobby", views.game_lobby, name="lobby"),
     path("send_word/<int:game_id>/<int:round_id>/", views.send_word, name="send_word"),
@@ -41,6 +48,7 @@ urlpatterns = [
         name="validate_sneak",
     ),
     path("ajax/reject_sneak/<int:game_id>/", views.reject_sneak, name="reject_sneak"),
+    path("ajax/like_sneak/<int:game_id>/", views.like_sneak, name="like_sneak"),
     path("qr-code/<int:game_id>/<slug:slug>/", views.qr_code_view, name="qr_code"),
     # Desktop API
     path("api/create_game/", views.create_game, name="create_game"),

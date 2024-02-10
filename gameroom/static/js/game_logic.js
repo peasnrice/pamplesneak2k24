@@ -38,7 +38,7 @@ $(document).ready(function () {
         const wordId = $(this).data('word-id');
         const gameId = $(this).data('game-id');
         const playerId = $(this).data('player-id');
-        word_fail(wordId, gameId, playerId);
+        word_skip(wordId, gameId, playerId);
     });
 
     // Character count for the 'word' field
@@ -93,6 +93,42 @@ $(document).ready(function () {
         }
     });
 
+    // Filter Chip click event
+    // Filter Chip click event
+    $('.filter-chip').click(function () {
+        // Update all chips to the base state
+        $('.filter-chip').removeClass('shadow-md').addClass('opacity-100');
+        // Apply the active state to the clicked filter chip
+        $(this).addClass('shadow-md').removeClass('opacity-75');
+
+        // Get the filter status from the clicked filter chip
+        var status = $(this).data('filter');
+
+        // Update the title based on the selected filter
+        var titleText = "All Sneaks"; // Default title
+        if (status === "successful") {
+            titleText = "Successful Sneaks";
+        } else if (status === "failed") {
+            titleText = "Failed Sneaks";
+        } else if (status === "skipped") {
+            titleText = "Skipped Sneaks";
+        }
+        $('#sneaksTitle').text(titleText); // Update the title
+
+        // Toggle cards with matching status
+        $('.card').each(function () {
+            var cardStatus = $(this).data('status');
+            if (status === cardStatus || status === "all") {
+                $(this).removeClass('hidden');
+            } else {
+                $(this).addClass('hidden');
+            }
+        });
+
+        // Inactivate other chips by reducing opacity
+        $('.filter-chip').not(this).removeClass('shadow-md').addClass('opacity-75');
+    });
+
 
     if (!refreshIntervalId) {
         refreshIntervalId = setInterval(refresh_word.bind(null, gameId, playerId), 10000);
@@ -117,6 +153,11 @@ $(document).ready(function () {
     $(document).on('click', '.reject_sneak', function () {
         var sneakId = $(this).closest('div[id]').attr('id');
         reject_sneak(sneakId);
+    });
+
+    $(document).on('click', '.like_sneak', function () {
+        var sneakId = $(this).closest('div[id]').attr('id');
+        like_sneak(sneakId);
     });
 
     // Show QR Code
@@ -340,10 +381,39 @@ async function reject_sneak(sneakId) {
     }
 }
 
+async function like_sneak(sneakId) {
+    try {
+        const response = await fetch(`/gameroom/ajax/like_sneak/${gameId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 'sneak_id': sneakId })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            updateLikesCount(sneakId, data.likes_count);
+        } else {
+            console.error(`HTTP error! status: ${response.status}`);
+        }
+
+    } catch (error) {
+        console.error('Error in like_sneak:', error);
+    }
+}
+
+function updateLikesCount(sneakId, likesCount) {
+    // Directly update the likes count
+    $('#' + sneakId).find('.like-count').text(likesCount + ' ❤️');
+}
 
 function updateVoteCounts(sneakId, validationsCount, rejectionsCount) {
+    // Update validations and rejections counts separately
     var container = $('#' + sneakId);
-    container.find('.votes').html('Validations: <strong>' + validationsCount + ' 🌟</strong>, Rejections: <strong>' + rejectionsCount + ' 💔</strong>');
+    container.find('.validation-count').text(validationsCount + ' 🌟');
+    container.find('.rejection-count').text(rejectionsCount + ' 💔');
 }
 
 function initializeCards() {

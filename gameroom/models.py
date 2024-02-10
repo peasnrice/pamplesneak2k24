@@ -136,11 +136,13 @@ class Word(models.Model):
         blank=True,
     )
     created = models.DateTimeField(auto_now_add=True)
+    time_completed = models.DateTimeField(null=True, blank=True)
     completed = models.BooleanField(default=False)
     successful = models.BooleanField(null=True)
     skipped = models.BooleanField(null=True)
     validations_count = models.IntegerField(default=0)
     rejections_count = models.IntegerField(default=0)
+    likes_count = models.IntegerField(default=0)
 
     def __str__(self):
         return self.word
@@ -171,6 +173,27 @@ class Vote(models.Model):
         self.word.validations_count = validations
         self.word.rejections_count = rejections
         self.word.save()
+
+
+class Like(models.Model):
+    word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name="likes")
+    player = models.ForeignKey(
+        "Player", on_delete=models.CASCADE, related_name="likes_given"
+    )
+
+    class Meta:
+        unique_together = ("word", "player")
+
+    def __str__(self):
+        return f"{self.player}'s like on '{self.word}'"
+
+    def save(self, *args, **kwargs):
+        # Ensure uniqueness to prevent duplicate likes
+        if not Like.objects.filter(word=self.word, player=self.player).exists():
+            super().save(*args, **kwargs)
+            # Update the Word instance like count
+            self.word.likes_count = self.word.likes.all().count()
+            self.word.save()
 
 
 class ExampleWord(models.Model):
