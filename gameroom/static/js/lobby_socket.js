@@ -1,5 +1,19 @@
-var lobbySocket = new WebSocket('ws://' + window.location.host + '/ws/gameroom/' + gameId + '/');
+// Check if gameId is defined
+if (typeof gameId === 'undefined') {
+    console.error('gameId is not defined. Cannot establish WebSocket connection.');
+    throw new Error('gameId is required but not defined');
+}
+
+var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+var lobbySocket;
 var timerInterval; // Declare this at the top level
+
+try {
+    lobbySocket = new WebSocket(protocol + '//' + window.location.host + '/ws/gameroom/' + gameId + '/');
+} catch (error) {
+    console.error('Failed to create WebSocket connection:', error);
+    throw error;
+}
 
 $(document).ready(function () {
     updateRoundStateDisplay(roundState);
@@ -7,7 +21,13 @@ $(document).ready(function () {
 })
 
 lobbySocket.onmessage = function (e) {
-    var data = JSON.parse(e.data);
+    var data;
+    try {
+        data = JSON.parse(e.data);
+    } catch (error) {
+        console.error('Failed to parse WebSocket message:', error);
+        return;
+    }
 
     if (data['players']) {
         updatePlayerList(data['players']);
@@ -41,15 +61,30 @@ lobbySocket.onmessage = function (e) {
 
 function updatePlayerList(players) {
     var playerList = document.querySelector('.player-list');
+    if (!playerList) {
+        console.error('Player list element not found');
+        return;
+    }
+    
     playerList.innerHTML = ''; // Clear existing player list
 
+    if (!Array.isArray(players)) {
+        console.error('Players data is not an array');
+        return;
+    }
+
     players.forEach(function (player) {
+        if (!player || typeof player.name !== 'string') {
+            console.warn('Invalid player data:', player);
+            return;
+        }
+        
         var li = document.createElement('li');
         var text = player.name;
         if (player.is_host) {
             text += " (host)";
         }
-        li.textContent = text;
+        li.textContent = text; // Using textContent prevents XSS
         playerList.appendChild(li);
     });
 }

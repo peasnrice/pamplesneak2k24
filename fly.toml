@@ -10,15 +10,14 @@ console_command = "/code/manage.py shell"
 [build]
 
 [deploy]
-  release_command = "python manage.py migrate --noinput"
+  release_command = "sh -c 'python manage.py migrate --noinput && python manage.py loaddata data/examplewords.json --ignore-conflicts || true'"
 
 [env]
   PORT = "8000"
-  DEBUG = false
+  DEBUG = "false"
 
-[processes]  # <-- Updated!
-  app = "daphne -b 0.0.0.0 -p 8000 pamplesneak.asgi:application"
-  worker = "celery -A pamplesneak worker -l info"
+[processes]
+  app = "sh -c 'celery -A pamplesneak worker -l info --detach && daphne -b 0.0.0.0 -p 8000 pamplesneak.asgi:application'"
 
 [http_service]
   internal_port = 8000
@@ -31,7 +30,11 @@ console_command = "/code/manage.py shell"
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
-  memory_mb = 256
+  memory_mb = 512
+
+[mounts]
+  source = "pamplesneak_data"
+  destination = "/data"
 
 [[statics]]
   guest_path = "/code/static"

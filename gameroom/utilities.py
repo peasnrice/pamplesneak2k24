@@ -38,7 +38,7 @@ def send_push_notification(user_id, payload):
                 data=notification_data,
                 vapid_private_key=settings.VAPID_PRIVATE_KEY,
                 vapid_claims={
-                    "sub": "mailto:andy@peasnrice.com",
+                    "sub": f"mailto:{settings.VAPID_ADMIN_EMAIL}",
                 },
             )
         except WebPushException as e:

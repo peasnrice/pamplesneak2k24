@@ -49,6 +49,11 @@ function urlBase64ToUint8Array(base64String) {
 
 // Subscribe the user to push notifications
 function subscribeUserToPush(registration) {
+    if (typeof vapid_public_key === 'undefined') {
+        console.error('VAPID public key is not defined');
+        return Promise.reject(new Error('VAPID public key is not defined'));
+    }
+    
     const applicationServerKey = urlBase64ToUint8Array(vapid_public_key);
     return registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -57,9 +62,15 @@ function subscribeUserToPush(registration) {
         console.log('User is subscribed.');
         return fetch('/save_subscription/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrf_token
+            },
             body: JSON.stringify(subscription)
         });
+    }).catch(error => {
+        console.error('Failed to subscribe user:', error);
+        throw error;
     });
 }
 
