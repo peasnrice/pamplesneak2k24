@@ -57,7 +57,7 @@ def send_web_push(subscription_information, message):
         return response.json()
     except WebPushException as ex:
         # Handle the exception as you see fit (e.g., log it, retry mechanism, etc.)
-        print(f"Web push failed: {ex}")
+        # Web push failed
 
 
 @csrf_exempt

@@ -24,4 +24,4 @@ with open(csv_file_path, "r") as csv_file:
 with open(json_file_path, "w") as json_file:
     json.dump(data, json_file)
 
-print("Data converted to Django fixture format and saved as 'examplewords.json'.")
+# Data converted to Django fixture format and saved as 'examplewords.json'

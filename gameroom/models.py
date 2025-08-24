@@ -86,8 +86,6 @@ class Round(models.Model):
         else:
             remaining_time = total_duration - time_elapsed
 
-        print(remaining_time)
-        print(max(remaining_time.total_seconds(), 0))
         return max(remaining_time.total_seconds(), 0)
 
     def save(self, *args, **kwargs):

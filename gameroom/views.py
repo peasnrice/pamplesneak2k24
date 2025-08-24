@@ -186,12 +186,6 @@ def joingame(request, game_id, slug):
     remaining_sneaks = sneak_stars - words_submitted_this_round
 
     remaining_time = current_round.get_remaining_time()
-    print(current_round)
-    print(current_round.round_number)
-    print("remaining time")
-    print(current_round.state)
-    print(current_round.state_start_time)
-    print(remaining_time)
 
     context = {
         "form": form,
@@ -390,9 +384,6 @@ def send_word(request, game_id, round_id):
             messages.success(request, "Message successfully sent!")
 
             return redirect("gameroom:joingame", game_id=game_id, slug=game.slug)
-        else:
-            print("form errros:")
-            print(form.errors)
     else:
         hide_target = (
             current_round.state == "create" or current_round.state == "transition"
@@ -447,8 +438,6 @@ def refresh_word(request, game_id, player_id):
 
 def word_success(request, word_id, game_id, player_id):
 
-    print("word_id")
-    print(word_id)
 
     game_word = Word.objects.get(id=word_id)
     # Perform the success logic here

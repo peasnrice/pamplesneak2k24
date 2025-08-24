@@ -11,7 +11,6 @@ def send_push_notification(user_id, payload):
     subscriptions = PushSubscription.objects.filter(user_id=user_id)
 
     if not subscriptions.exists():
-        print(f"No subscriptions found for user {user_id}")
         return
 
     # Prepare the push notification payload
@@ -25,8 +24,6 @@ def send_push_notification(user_id, payload):
             }
         }
     )
-    print("notification payload")
-    print(notification_data)
 
     # Iterate over all subscriptions and send the notification
     for subscription in subscriptions:
@@ -42,5 +39,5 @@ def send_push_notification(user_id, payload):
                 },
             )
         except WebPushException as e:
-            print(f"Web push failed for subscription {subscription.id}: {e}")
+            # Failed to send push notification
             # Optionally, handle the failed subscription (e.g., delete or mark as inactive)

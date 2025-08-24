@@ -311,7 +311,6 @@ async function get_inspiration() {
 
         if (response.ok) {
             const data = await response.json();
-            console.log(data);
             $('.class_word').val(data.response_text);
             $('.class_word').trigger('input');
 
